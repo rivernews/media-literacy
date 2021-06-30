@@ -1,6 +1,5 @@
 import os
 import base64
-import aiohttp
 from slack_sdk.signature import SignatureVerifier
 from media_literacy.http import HttpResponse, HttpError, BadRequestError
 
