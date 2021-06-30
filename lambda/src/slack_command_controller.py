@@ -1,5 +1,4 @@
 import os
-import json
 import base64
 import aiohttp
 from slack_sdk.signature import SignatureVerifier

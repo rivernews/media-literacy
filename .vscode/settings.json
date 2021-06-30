@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "${workspaceFolder}/lambda/layer/venv/bin/python",
+    // for terminal to run .py files
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/lambda/layer"
+    },
+    // for Pylance to give correct intellisense
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/lambda/layer"
+    ]
+}
