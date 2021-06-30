@@ -1,4 +1,6 @@
 **credential**
+cloud/builds
+venv
 
 # Binaries for programs and plugins
 *.exe
