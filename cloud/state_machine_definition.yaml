@@ -1,0 +1,14 @@
+# AWS State Machine Definition Supports YAML
+# https://aws.amazon.com/about-aws/whats-new/2021/03/aws-step-functions-adds-tooling-support-for-yaml/
+
+Comment: This is an ASL comment. This will be preserved in the state machine resource's definition.
+StartAt: FirstState
+States:
+  FirstState:
+    Type: Pass
+    Result: "FirstStateResult"
+    Next: SecondState
+  SecondState:
+    Type: Pass
+    Result: "SecondStateResult"
+    End: true

@@ -21,5 +21,5 @@ def lambda_handler(event, context):
 
     return HttpResponse(200, {
             'message': 'hello',
-            'event': event
+            'STATE_MACHINE_ARN': os.environ.get('STATE_MACHINE_ARN', '')
         }).build()

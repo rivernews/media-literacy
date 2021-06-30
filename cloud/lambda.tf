@@ -30,6 +30,7 @@ module "slack_command_lambda" {
 
   environment_variables = {
     SLACL_SIGNING_SECRET = var.slack_signing_secret
+    STATE_MACHINE_ARN = module.step_function.state_machine_arn
   }
 
   tags = {
@@ -52,6 +53,30 @@ module "lambda_layer" {
     # https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-path
     prefix_in_zip = "python"
   }]
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+
+module "step_function" {
+  source = "terraform-aws-modules/step-functions/aws"
+
+  name = "${var.project_name}-step-function"
+  definition = templatefile("state_machine_definition.yaml", {
+    # example_function_arn = module.lambda_function.lambda_function_arn
+  })
+
+  service_integrations = {
+    lambda = {
+      lambda = [
+        module.slack_command_lambda.lambda_function_arn
+      ]
+    }
+  }
+
+  type = "STANDARD"
 
   tags = {
     Project = var.project_name
