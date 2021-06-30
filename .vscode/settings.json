@@ -5,6 +5,7 @@
         "PYTHONPATH": "${workspaceFolder}/lambda/layer"
     },
     // for Pylance to give correct intellisense
+    // https://stackoverflow.com/a/65245988/9814131
     "python.analysis.extraPaths": [
         "${workspaceFolder}/lambda/layer"
     ]
