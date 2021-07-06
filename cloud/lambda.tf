@@ -46,7 +46,8 @@ module "slack_command_lambda" {
 EOF
 
   environment_variables = {
-    SLACL_SIGNING_SECRET = var.slack_signing_secret
+    SLACK_SIGNING_SECRET = var.slack_signing_secret
+    SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
     STATE_MACHINE_ARN = module.step_function.state_machine_arn
     LOGLEVEL = "DEBUG"
   }

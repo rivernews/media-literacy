@@ -7,6 +7,7 @@ AWS_SECRET_ACCESS_KEY=${secret_key}
 AWS_DEFAULT_REGION=${region}
 TF_VAR_project_name=media-literacy
 TF_VAR_slack_signing_secret=${slack_signing_secret}
+TF_VAR_slack_post_webhook_url=${slack_post_webhook_url}
 set +o allexport
 
 terraform "$@"

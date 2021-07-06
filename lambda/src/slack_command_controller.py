@@ -11,7 +11,7 @@ from media_literacy.logging import Logger
 def lambda_handler(event, context):
     Logger.debug('Incoming request', event)
 
-    if not SignatureVerifier(os.environ.get('SLACL_SIGNING_SECRET', '')).is_valid_request(
+    if not SignatureVerifier(os.environ.get('SLACK_SIGNING_SECRET', '')).is_valid_request(
         # Validating AWS Lambda's Event Slack Request
         # https://gist.github.com/nitrocode/288bb104893698011720d108e9841b1f
         base64.b64decode(event.get('body', '')).decode("utf-8") if event.get('isBase64Encoded') else event.get('body', ''),

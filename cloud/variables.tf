@@ -7,3 +7,8 @@ variable "project_name" {
 variable "slack_signing_secret" {
   type = string
 }
+
+
+variable "slack_post_webhook_url" {
+  type = string
+}
