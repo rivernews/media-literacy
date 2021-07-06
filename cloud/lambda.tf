@@ -28,9 +28,27 @@ module "slack_command_lambda" {
     }
   }
 
+  # allow lambda to invoke step function
+  attach_policy_json = true
+  policy_json        = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "states:StartExecution"
+            ],
+            "Resource": ["${module.step_function.state_machine_arn}"]
+        }
+    ]
+}
+EOF
+
   environment_variables = {
     SLACL_SIGNING_SECRET = var.slack_signing_secret
     STATE_MACHINE_ARN = module.step_function.state_machine_arn
+    LOGLEVEL = "DEBUG"
   }
 
   tags = {
@@ -60,21 +78,18 @@ module "lambda_layer" {
 }
 
 
+# Based on
+# https://github.com/terraform-aws-modules/terraform-aws-step-functions
 module "step_function" {
   source = "terraform-aws-modules/step-functions/aws"
 
   name = "${var.project_name}-step-function"
-  definition = templatefile("state_machine_definition.yaml", {
-    # example_function_arn = module.lambda_function.lambda_function_arn
-  })
+  
+  # TODO: change to yaml
+  definition = templatefile("state_machine_definition.json", {})
 
-  service_integrations = {
-    lambda = {
-      lambda = [
-        module.slack_command_lambda.lambda_function_arn
-      ]
-    }
-  }
+  # allow step function to invoke other service
+  service_integrations = {}
 
   type = "STANDARD"
 

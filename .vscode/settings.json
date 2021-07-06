@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "${workspaceFolder}/lambda/layer/venv/bin/python",
+    "python.pythonPath": "${workspaceFolder}/lambda/venv/bin/python",
     // for terminal to run .py files
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}/lambda/layer"
@@ -7,6 +7,10 @@
     // for Pylance to give correct intellisense
     // https://stackoverflow.com/a/65245988/9814131
     "python.analysis.extraPaths": [
+        "${workspaceFolder}/lambda/layer"
+    ],
+    // Python intelligence on code-server
+    "python.autoComplete.extraPaths": [
         "${workspaceFolder}/lambda/layer"
     ]
 }
