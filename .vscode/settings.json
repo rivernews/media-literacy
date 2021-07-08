@@ -1,16 +1,33 @@
 {
-    "python.pythonPath": "${workspaceFolder}/lambda/venv/bin/python",
-    // for terminal to run .py files
-    "terminal.integrated.env.linux": {
-        "PYTHONPATH": "${workspaceFolder}/lambda/layer"
-    },
     // for Pylance to give correct intellisense
+    "python.pythonPath": "${workspaceFolder}/lambda/venv/bin/python",
+
+    // for code-server
+    "terminal.integrated.shell.linux": "zsh",
+    "terminal.integrated.env.linux": {
+        // useless, seems only effective in User level settings
+        "PYTHONPATH": "${workspaceFolder}/lambda/layer",
+    },
+    // (code-server) for python intelligence
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/lambda/layer"
+    ],
+    
+    // for vscode
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/bin/zsh",
+            "env": {
+                // useless, seems only effective in User level settings
+                "PYTHONPATH": "${workspaceFolder}/lambda/layer",
+            }
+        },
+    },
+    // (vscode) for python intelligence
+    // Based on
     // https://stackoverflow.com/a/65245988/9814131
     "python.analysis.extraPaths": [
         "${workspaceFolder}/lambda/layer"
     ],
-    // Python intelligence on code-server
-    "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/lambda/layer"
-    ]
 }
