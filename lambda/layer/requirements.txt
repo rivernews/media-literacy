@@ -1,4 +1,5 @@
 # Slack SDK
 # https://slack.dev/python-slack-sdk/api-docs/slack_sdk/signature/index.html
-slack_sdk
-boto3
+slack_sdk < 4
+boto3 < 2
+aiohttp < 4

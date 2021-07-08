@@ -12,6 +12,9 @@ class HttpResponse:
     def build(self):
         return {
             'statusCode': self.status_code,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps(self.body, cls=JSONResponseEncoder)
         }
 
