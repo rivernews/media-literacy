@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Union, Dict, Optional
 import json
 import base64
+from urlparse import parse_qs
 from media_literacy.logging import Logger
 from media_literacy.serializer import JSONResponseEncoder
 
@@ -68,7 +69,13 @@ class APIGatewayRequest:
         if not self._body:
             self.body = {}
         elif content_type == 'application/x-www-form-urlencoded':
-            self.body = base64.b64decode(self._body).decode("utf-8") if event.get('isBase64Encoded') else self._body
+            if event.get('isBase64Encoded'):
+                body = base64.b64decode(self._body).decode("utf-8")
+                # note that this will parse all values as a list
+                # see https://stackoverflow.com/questions/1024143/how-to-stop-python-parse-qs-from-parsing-single-values-into-lists
+                self.body = parse_qs(body)
+            else:
+                self.body = self._body
         elif content_type == 'application/json':
             self.body = json.loads(event.get('body', ''))
         else:
