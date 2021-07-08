@@ -20,7 +20,7 @@ def lambda_handler(request: APIGatewayRequest, context):
     if not SignatureVerifier(os.environ.get('SLACK_SIGNING_SECRET', '')).is_valid_request(
         # Validating AWS Lambda's Event Slack Request
         # https://gist.github.com/nitrocode/288bb104893698011720d108e9841b1f
-        request.body,
+        request._body,
         request.headers
     ):
         raise BadRequestError
