@@ -1,15 +1,14 @@
 import os
 import boto3
-import json
 import asyncio
-from datetime import datetime
 from slack_sdk.signature import SignatureVerifier
-from media_literacy.http import HttpResponse, HttpError, BadRequestError, handle_exception, APIGatewayRequest
+from media_literacy.http import BadRequestError, handle_exception, APIGatewayRequest
 from media_literacy.logging import Logger
 from media_literacy.services.slack_service import SlackService
 
 
 loop = asyncio.get_event_loop()
+PIPELINE_QUEUE_NAME = os.environ.get('PIPELINE_QUEUE_NAME', '')
 
 
 @handle_exception
@@ -25,16 +24,14 @@ def lambda_handler(request: APIGatewayRequest, context):
     ):
         raise BadRequestError
 
-    client = boto3.client('stepfunctions')
-    step_function_submit_res = client.start_execution(
-        stateMachineArn=os.environ.get('STATE_MACHINE_ARN', ''),
-        name=f'media-literacy-sf-{datetime.now().strftime("%Y-%H-%M")}-{request.headers.get("x-slack-signature", "")[-5:]}',
-        input=json.dumps({
-            'test': 'input'
-        })
-    )
+    # Based on
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/sqs.html#sending-messages
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName=PIPELINE_QUEUE_NAME)
+    # only using a single `MessageGroupId` for this queue - does not intend to use for multiple FIFO orderings in one queue
+    response = queue.send_message(MessageBody=str(request.body), MessageGroupId=PIPELINE_QUEUE_NAME)
 
-    loop.run_until_complete(SlackService.send('You sent a slack command!', request.body))
+    loop.run_until_complete(SlackService.send('You sent a slack command!', request.body, response))
 
     return {
         'message': 'OK'

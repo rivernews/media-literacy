@@ -9,7 +9,7 @@ module "slack_command_lambda" {
   description   = "Lambda function for slack command"
   handler       = "slack_command_controller.lambda_handler"
   runtime     = "python3.8"
-  source_path = "${path.module}/../lambda/src"
+  source_path = "${path.module}/../lambda/src/slack_command_controller.py"
 
   layers = [
     module.lambda_layer.lambda_layer_arn
@@ -28,27 +28,19 @@ module "slack_command_lambda" {
     }
   }
 
-  # allow lambda to invoke step function
-  attach_policy_json = true
-  policy_json        = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "states:StartExecution"
-            ],
-            "Resource": ["${module.step_function.state_machine_arn}"]
-        }
-    ]
-}
-EOF
+  attach_policy_statements = true
+  policy_statements = {
+    pipeline_sqs = {
+      effect    = "Allow",
+      actions   = ["sqs:SendMessage", "sqs:GetQueueUrl"],
+      resources = [module.pipeline_queue.this_sqs_queue_arn]
+    }
+  }
 
   environment_variables = {
     SLACK_SIGNING_SECRET = var.slack_signing_secret
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
-    STATE_MACHINE_ARN = module.step_function.state_machine_arn
+    PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
     LOGLEVEL = "DEBUG"
   }
 
