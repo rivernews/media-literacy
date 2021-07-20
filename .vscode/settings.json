@@ -12,7 +12,7 @@
     "python.autoComplete.extraPaths": [
         "${workspaceFolder}/lambda/layer"
     ],
-    
+
     // for vscode
     "terminal.integrated.defaultProfile.linux": "zsh",
     "terminal.integrated.profiles.linux": {
@@ -30,4 +30,9 @@
     "python.analysis.extraPaths": [
         "${workspaceFolder}/lambda/layer"
     ],
+
+    "go.useLanguageServer": true,
+    "gopls": {
+        "build.experimentalWorkspaceModule": true
+    }
 }

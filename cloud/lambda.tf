@@ -85,15 +85,50 @@ module "step_function" {
   source = "terraform-aws-modules/step-functions/aws"
 
   name = "${var.project_name}-step-function"
-  
+
   # TODO: change to yaml
-  definition = templatefile("state_machine_definition.json", {})
+  definition = templatefile("state_machine_definition.json", {
+    SCRAPER_LAMBDA_ARN = module.scraper_lambda.lambda_function_arn
+  })
 
   # allow step function to invoke other service
-  service_integrations = {}
+  service_integrations = {
+    lambda = {
+      lambda = [
+        module.scraper_lambda.lambda_function_arn
+      ]
+    }
+  }
 
   type = "STANDARD"
 
+  tags = {
+    Project = var.project_name
+  }
+}
+
+module "scraper_lambda" {
+  source = "terraform-aws-modules/lambda/aws"
+  create_function = true
+  function_name = "${var.project_name}-scraper-lambda"
+  description   = "Lambda function for scraping"
+  handler       = "main"
+  runtime     = "go1.x"
+
+  # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
+  # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
+  source_path = [{
+    path = "${path.module}/../scraper_lambda/"
+    commands = ["go build -o main", ":zip"]
+    patterns = ["main"]
+  }]
+
+  cloudwatch_logs_retention_in_days = 7
+
+  publish = true
+  allowed_triggers = {
+    # allow sfn to call this func - set from sfn since the sf module provides integration there already
+  }
   tags = {
     Project = var.project_name
   }

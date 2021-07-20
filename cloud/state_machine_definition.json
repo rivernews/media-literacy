@@ -1,11 +1,18 @@
 {
-  "Comment": "A Hello World example of the Amazon States Language using an AWS Lambda Function",
+  "Comment": "See syntax for the Amazon States Language: https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html",
   "StartAt": "HelloWorld",
   "States": {
     "HelloWorld": {
       "Type": "Pass",
       "Result": "Hi there",
-      "End": true
-    }
+      "Next": "CallLambda"
+    },
+    "CallLambda":{
+      "Comment": "See lambda example: https://docs.aws.amazon.com/step-functions/latest/dg/connect-lambda.html",
+      "Type":"Task",
+      "Resource":"${SCRAPER_LAMBDA_ARN}",
+      "Parameters":{},
+      "End":true
+   }
   }
 }
