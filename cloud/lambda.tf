@@ -9,12 +9,14 @@ module "slack_command_lambda" {
   description   = "Lambda function for slack command"
   handler       = "slack_command_controller.lambda_handler"
   runtime     = "python3.8"
-  source_path = "${path.module}/../lambda/src"
+  source_path = "${path.module}/../lambda/src/slack_command_controller.py"
 
   layers = [
     module.lambda_layer.lambda_layer_arn
   ]
 
+  # Maximum lambda execution time - 15m
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   # Enable publish to create versions for lambda;
@@ -28,27 +30,19 @@ module "slack_command_lambda" {
     }
   }
 
-  # allow lambda to invoke step function
-  attach_policy_json = true
-  policy_json        = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "states:StartExecution"
-            ],
-            "Resource": ["${module.step_function.state_machine_arn}"]
-        }
-    ]
-}
-EOF
+  attach_policy_statements = true
+  policy_statements = {
+    pipeline_sqs = {
+      effect    = "Allow",
+      actions   = ["sqs:SendMessage", "sqs:GetQueueUrl"],
+      resources = [module.pipeline_queue.this_sqs_queue_arn]
+    }
+  }
 
   environment_variables = {
     SLACK_SIGNING_SECRET = var.slack_signing_secret
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
-    STATE_MACHINE_ARN = module.step_function.state_machine_arn
+    PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
     LOGLEVEL = "DEBUG"
   }
 
@@ -85,15 +79,50 @@ module "step_function" {
   source = "terraform-aws-modules/step-functions/aws"
 
   name = "${var.project_name}-step-function"
-  
+
   # TODO: change to yaml
-  definition = templatefile("state_machine_definition.json", {})
+  definition = templatefile("state_machine_definition.json", {
+    SCRAPER_LAMBDA_ARN = module.scraper_lambda.lambda_function_arn
+  })
 
   # allow step function to invoke other service
-  service_integrations = {}
+  service_integrations = {
+    lambda = {
+      lambda = [
+        module.scraper_lambda.lambda_function_arn
+      ]
+    }
+  }
 
   type = "STANDARD"
 
+  tags = {
+    Project = var.project_name
+  }
+}
+
+module "scraper_lambda" {
+  source = "terraform-aws-modules/lambda/aws"
+  create_function = true
+  function_name = "${var.project_name}-scraper-lambda"
+  description   = "Lambda function for scraping"
+  handler       = "main"
+  runtime     = "go1.x"
+
+  # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
+  # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
+  source_path = [{
+    path = "${path.module}/../scraper_lambda/"
+    commands = ["go build -o main", ":zip"]
+    patterns = ["main"]
+  }]
+
+  cloudwatch_logs_retention_in_days = 7
+
+  publish = true
+  allowed_triggers = {
+    # allow sfn to call this func - set from sfn since the sf module provides integration there already
+  }
   tags = {
     Project = var.project_name
   }
