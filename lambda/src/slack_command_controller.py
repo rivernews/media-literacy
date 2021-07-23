@@ -31,7 +31,7 @@ def lambda_handler(request: APIGatewayRequest, context):
     # only using a single `MessageGroupId` for this queue - does not intend to use for multiple FIFO orderings in one queue
     response = queue.send_message(MessageBody=str(request.body), MessageGroupId=PIPELINE_QUEUE_NAME)
 
-    loop.run_until_complete(SlackService.send('You sent a slack command!', request.body, response))
+    loop.run_until_complete(SlackService.send('You sent a slack command!'))
 
     return {
         'message': 'OK'

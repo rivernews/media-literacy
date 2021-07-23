@@ -5,10 +5,14 @@ module "pipeline_queue" {
   version = ">= 2.0, < 3.0"
 
   name = "${var.project_name}-pipeline-queue.fifo"
-  receive_wait_time_seconds = 3
+  delay_seconds = 5
+
   fifo_queue = true
   content_based_deduplication = true
   visibility_timeout_seconds = 30
+
+  # enable long polling
+  receive_wait_time_seconds = 10
 
   tags = {
     Project = var.project_name
@@ -32,10 +36,13 @@ module "pipeline_queue_consumer_lambda" {
     module.lambda_layer.lambda_layer_arn
   ]
 
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   # Upstream
 
+  # prevent multiple lambda spin up concurrently since we want to slow down the execution
+  reserved_concurrent_executions = 1
   # event source mapping
   event_source_mapping = {
     sqs = {
@@ -56,8 +63,9 @@ module "pipeline_queue_consumer_lambda" {
     pull_sqs = {
       effect    = "Allow",
       # Based on
-      # https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-api-permissions-reference.html
-      actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:DeleteMessageBatch", "sqs:GetQueueAttributes"],
+      # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-permissions
+      # Full list of actions: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-api-permissions-reference.html
+      actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
       resources = [module.pipeline_queue.this_sqs_queue_arn]
     }
   }

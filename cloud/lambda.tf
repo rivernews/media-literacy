@@ -15,6 +15,8 @@ module "slack_command_lambda" {
     module.lambda_layer.lambda_layer_arn
   ]
 
+  # Maximum lambda execution time - 15m
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   # Enable publish to create versions for lambda;
