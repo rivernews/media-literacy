@@ -123,6 +123,13 @@ module "scraper_lambda" {
   allowed_triggers = {
     # allow sfn to call this func - set from sfn since the sf module provides integration there already
   }
+
+  environment_variables = {
+    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
+    LOG_LEVEL = "DEBUG"
+    DEBUG = "true"
+  }
+
   tags = {
     Project = var.project_name
   }

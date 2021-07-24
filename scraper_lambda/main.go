@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/html/charset"
 	"context"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/rivernews/GoTools"
 )
 
 func main() {
@@ -42,7 +43,8 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 		log.Fatal(err)
 	}
 
-	log.Println(string(body))
+	GoTools.Logger("INFO", string(body))
+	GoTools.SendSlackMessage("In golang runtime now!\n\n```\n " + string(body) + "\n ```\n End of message")
 
 	return LambdaResponse{
 		Message: "OK " + name.Name,
