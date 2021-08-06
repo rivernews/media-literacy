@@ -117,6 +117,7 @@ module "scraper_lambda" {
     patterns = ["main"]
   }]
 
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   publish = true
@@ -124,10 +125,22 @@ module "scraper_lambda" {
     # allow sfn to call this func - set from sfn since the sf module provides integration there already
   }
 
+  attach_policy_statements = true
+  policy_statements = {
+    s3_archive_bucket = {
+      effect    = "Allow",
+      actions   = [
+        "s3:PutObject",
+      ],
+      resources = ["${data.aws_s3_bucket.archive.arn}/*"]
+    }
+  }
+
   environment_variables = {
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
+    S3_ARCHIVE_BUCKET = var.s3_archive_bucket
   }
 
   tags = {

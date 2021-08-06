@@ -12,3 +12,7 @@ variable "slack_signing_secret" {
 variable "slack_post_webhook_url" {
   type = string
 }
+
+variable s3_archive_bucket {
+  type = string
+}
