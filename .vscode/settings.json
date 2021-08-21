@@ -34,5 +34,7 @@
     "go.useLanguageServer": true,
     "gopls": {
         "build.experimentalWorkspaceModule": true
-    }
+    },
+    "go.gopath": "/root/go",
+    "go.goroot": "/root/.go"
 }

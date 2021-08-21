@@ -1,5 +1,6 @@
 **credential**
-cloud/builds
+**/builds/**
+
 scraper_lambda/main
 venv
 

@@ -16,7 +16,7 @@ import (
 
 func archive(body io.Reader, key string) (bool, error) {
 	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
-	GoTools.Logger("INFO", "Bucket to archive: s3://", bucket)
+	GoTools.Logger("INFO", "Bucket to archive: s3://", bucket, "Key:", key)
 
 	// Based on
 	// https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/
