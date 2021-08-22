@@ -3,8 +3,8 @@
 module "api" {
   source = "terraform-aws-modules/apigateway-v2/aws"
 
-  name          = "${var.project_name}-api-gateway"
-  description   = "HTTP API Gateway of project ${var.project_name}"
+  name          = "${local.project_name}-api-gateway"
+  description   = "HTTP API Gateway of project ${local.project_name}"
   protocol_type = "HTTP"
 
   cors_configuration = {
@@ -39,11 +39,11 @@ module "api" {
   }
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
 
 resource "aws_cloudwatch_log_group" "api" {
-  name              = "/aws/api/${var.project_name}"
+  name              = "/aws/api/${local.project_name}"
   retention_in_days = 7
 }

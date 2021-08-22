@@ -5,8 +5,8 @@ module "slack_command_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_function = true
-  function_name = "slack-command-lambda"
-  description   = "Lambda function for slack command"
+  function_name = "${local.project_name}-slack-command-lambda"
+  description   = "Lambda function for slack command for environment ${local.project_name}"
   handler       = "slack_command_controller.lambda_handler"
   runtime     = "python3.8"
   source_path = "${path.module}/../lambda/src/slack_command_controller.py"
@@ -16,7 +16,7 @@ module "slack_command_lambda" {
   ]
 
   # Maximum lambda execution time - 15m
-  timeout = 900
+  timeout = 20
   cloudwatch_logs_retention_in_days = 7
 
   # Enable publish to create versions for lambda;
@@ -47,7 +47,7 @@ module "slack_command_lambda" {
   }
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
 
@@ -55,7 +55,7 @@ module "lambda_layer" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_layer = true
-  layer_name          = "${var.project_name}-lambda-layer"
+  layer_name          = "${local.project_name}-lambda-layer"
   description         = "Layer that provides dependencies for the Meida Literacy project"
   runtime     = "python3.8"
   compatible_runtimes = ["python3.8"]
@@ -68,7 +68,7 @@ module "lambda_layer" {
   }]
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
 
@@ -78,14 +78,19 @@ module "lambda_layer" {
 module "step_function" {
   source = "terraform-aws-modules/step-functions/aws"
 
-  name = "${var.project_name}-step-function"
+  name = "${local.project_name}-step-function"
 
   # TODO: change to yaml
-  definition = templatefile("state_machine_definition.json", {
+  definition = templatefile("${path.module}/state_machine_definition.json", {
     SCRAPER_LAMBDA_ARN = module.scraper_lambda.lambda_function_arn
   })
 
   # allow step function to invoke other service
+  #
+  # Warning:
+  # Needs to create `module.scraper_lambda` before creating this step_function
+  # `depends_on` will not help unfortunately
+  # https://github.com/terraform-aws-modules/terraform-aws-step-functions/issues/20
   service_integrations = {
     lambda = {
       lambda = [
@@ -97,14 +102,14 @@ module "step_function" {
   type = "STANDARD"
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
 
 module "scraper_lambda" {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
-  function_name = "${var.project_name}-scraper-lambda"
+  function_name = "${local.project_name}-scraper-lambda"
   description   = "Lambda function for scraping"
   handler       = "main"
   runtime     = "go1.x"
@@ -117,13 +122,35 @@ module "scraper_lambda" {
     patterns = ["main"]
   }]
 
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   publish = true
   allowed_triggers = {
     # allow sfn to call this func - set from sfn since the sf module provides integration there already
   }
+
+  attach_policy_statements = true
+  policy_statements = {
+    s3_archive_bucket = {
+      effect    = "Allow",
+      actions   = [
+        "s3:PutObject",
+      ],
+      resources = ["${data.aws_s3_bucket.archive.arn}/*"]
+    }
+  }
+
+  environment_variables = {
+    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
+    LOG_LEVEL = "DEBUG"
+    DEBUG = "true"
+    S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+
+    NEWSSITE_ECONOMY = data.aws_ssm_parameter.newssite_economy.value
+  }
+
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }

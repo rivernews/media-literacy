@@ -4,18 +4,18 @@ module "pipeline_queue" {
   source  = "terraform-aws-modules/sqs/aws"
   version = ">= 2.0, < 3.0"
 
-  name = "${var.project_name}-pipeline-queue.fifo"
-  delay_seconds = 5
+  name = "${local.project_name}-pipeline-queue.fifo"
+  delay_seconds = 1
 
   fifo_queue = true
   content_based_deduplication = true
-  visibility_timeout_seconds = 30
+  visibility_timeout_seconds = 60
 
   # enable long polling
   receive_wait_time_seconds = 10
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
 
@@ -25,8 +25,8 @@ module "pipeline_queue_consumer_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_function = true
-  function_name = "${var.project_name}-pipeline-queue-consumer-lambda"
-  description   = "Consumer lambda function for ${var.project_name} pipeline queue"
+  function_name = "${local.project_name}-pipeline-queue-consumer-lambda"
+  description   = "Consumer lambda function for ${local.project_name} pipeline queue"
   handler       = "pipeline_queue_consumer.lambda_handler"
   runtime     = "python3.8"
   source_path = "${path.module}/../lambda/src/pipeline_queue_consumer.py"
@@ -36,13 +36,12 @@ module "pipeline_queue_consumer_lambda" {
     module.lambda_layer.lambda_layer_arn
   ]
 
-  timeout = 900
+  timeout = 30
   cloudwatch_logs_retention_in_days = 7
 
   # Upstream
 
-  # prevent multiple lambda spin up concurrently since we want to slow down the execution
-  reserved_concurrent_executions = 1
+  reserved_concurrent_executions = -1
   # event source mapping
   event_source_mapping = {
     sqs = {
@@ -91,12 +90,14 @@ EOF
 
   environment_variables = {
     STATE_MACHINE_ARN = module.step_function.state_machine_arn
+    PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
     SLACK_SIGNING_SECRET = var.slack_signing_secret
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
     LOGLEVEL = "DEBUG"
+    ENV = local.environment
   }
 
   tags = {
-    Project = var.project_name
+    Project = local.project_name
   }
 }
