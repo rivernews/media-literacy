@@ -44,6 +44,8 @@ module "slack_command_lambda" {
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
     PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
     LOGLEVEL = "DEBUG"
+
+    S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
   }
 
   tags = {
