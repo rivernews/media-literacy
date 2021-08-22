@@ -9,10 +9,10 @@ class _SlackService:
         self._webhook_url = os.environ.get('SLACK_POST_WEBHOOK_URL', '')
         if not self._webhook_url:
             raise InternalServerError(message='Slack post webhook url not configured')
-    
+
     async def send(self, *messages):
         await AsyncRequest.post(self._webhook_url, data={
-            "text": ' '.join([str(_message) for _message in messages])
+            "text": f'[{os.environ.get("ENV")}]' + ' '.join([str(_message) for _message in messages])
         })
 
 SlackService = _SlackService()

@@ -146,6 +146,8 @@ module "scraper_lambda" {
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+
+    NEWSSITE_ECONOMY = data.aws_ssm_parameter.newssite_economy.value
   }
 
   tags = {

@@ -28,9 +28,7 @@ def lambda_handler(request: APIGatewayRequest, context):
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/sqs.html#sending-messages
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName=PIPELINE_QUEUE_NAME)
-    # only using a single `MessageGroupId` for this queue - does not intend to use for multiple FIFO orderings in one queue
-    response = queue.send_message(MessageBody=str(request.body), MessageGroupId=f'{PIPELINE_QUEUE_NAME}-00')
-    response = queue.send_message(MessageBody=str(request.body), MessageGroupId=f'{PIPELINE_QUEUE_NAME}-01')
+    response = queue.send_message(MessageBody=str(request.body), MessageGroupId=f'{PIPELINE_QUEUE_NAME}')
 
     loop.run_until_complete(SlackService.send('You sent a slack command!'))
 

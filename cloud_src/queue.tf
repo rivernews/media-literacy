@@ -41,8 +41,7 @@ module "pipeline_queue_consumer_lambda" {
 
   # Upstream
 
-  # prevent multiple lambda spin up concurrently since we want to slow down the execution
-  reserved_concurrent_executions = 1
+  reserved_concurrent_executions = -1
   # event source mapping
   event_source_mapping = {
     sqs = {
@@ -95,6 +94,7 @@ EOF
     SLACK_SIGNING_SECRET = var.slack_signing_secret
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
     LOGLEVEL = "DEBUG"
+    ENV = local.environment
   }
 
   tags = {

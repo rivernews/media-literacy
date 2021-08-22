@@ -10,8 +10,6 @@ from media_literacy.logging import Logger
 
 loop = asyncio.get_event_loop()
 
-PIPELINE_QUEUE_NAME = os.environ.get('PIPELINE_QUEUE_NAME', '')
-
 # Event shape from SQS
 # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
 def lambda_handler(*args, **kwargs):
