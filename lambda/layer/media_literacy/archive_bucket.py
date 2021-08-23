@@ -9,9 +9,12 @@ class _ArchiveBucket:
     bucket = None
 
     def __init__(self):
+        try:
+            self.s3.meta.client.head_bucket(Bucket=self.bucket_name)
+        except self.s3.meta.client.exceptions.NoSuchBucket as e:
+            raise Exception(f'Archive bucket `{self.bucket_name}` does not exist, did you pass in env var `S3_ARCHIVE_BUCKET`? {e}')
+
         self.bucket = self.s3.Bucket(self.bucket_name)
-        if not self.bucket.creation_date:
-            raise Exception(f'Archive bucket `{self.bucket_name}` does not exist, did you pass in env var `S3_ARCHIVE_BUCKET`?')
 
     def exist(self, key) -> bool:
         objects = list(self.bucket.objects.filter(Prefix=key))

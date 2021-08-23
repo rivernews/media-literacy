@@ -1,58 +1,6 @@
 # Based on
 # https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf
 
-module "slack_command_lambda" {
-  source = "terraform-aws-modules/lambda/aws"
-
-  create_function = true
-  function_name = "${local.project_name}-slack-command-lambda"
-  description   = "Lambda function for slack command for environment ${local.project_name}"
-  handler       = "slack_command_controller.lambda_handler"
-  runtime     = "python3.8"
-  source_path = "${path.module}/../lambda/src/slack_command_controller.py"
-
-  layers = [
-    module.lambda_layer.lambda_layer_arn
-  ]
-
-  # Maximum lambda execution time - 15m
-  timeout = 20
-  cloudwatch_logs_retention_in_days = 7
-
-  # Enable publish to create versions for lambda;
-  # otherwise will use $LATEST instead and will cause trouble creating permission for allowing API Gateway invocation:
-  # `We currently do not support adding policies for $LATEST.`
-  publish = true
-  allowed_triggers = {
-    APIGatewayAny = {
-      service    = "apigateway"
-      source_arn = "${module.api.apigatewayv2_api_execution_arn}/*/POST/slack/command"
-    }
-  }
-
-  attach_policy_statements = true
-  policy_statements = {
-    pipeline_sqs = {
-      effect    = "Allow",
-      actions   = ["sqs:SendMessage", "sqs:GetQueueUrl"],
-      resources = [module.pipeline_queue.this_sqs_queue_arn]
-    }
-  }
-
-  environment_variables = {
-    SLACK_SIGNING_SECRET = var.slack_signing_secret
-    SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
-    PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
-    LOGLEVEL = "DEBUG"
-
-    S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
-  }
-
-  tags = {
-    Project = local.project_name
-  }
-}
-
 module "lambda_layer" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -83,7 +31,7 @@ module "step_function" {
   name = "${local.project_name}-step-function"
 
   # TODO: change to yaml
-  definition = templatefile("${path.module}/state_machine_definition.json", {
+  definition = templatefile("${path.module}/sfn_def/state_machine_definition.json", {
     SCRAPER_LAMBDA_ARN = module.scraper_lambda.lambda_function_arn
   })
 
@@ -119,7 +67,7 @@ module "scraper_lambda" {
   # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
   # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
   source_path = [{
-    path = "${path.module}/../scraper_lambda/"
+    path = "${path.module}/../scraper_lambda/landing"
     commands = ["go build -o main", ":zip"]
     patterns = ["main"]
   }]

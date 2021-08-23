@@ -1,7 +1,7 @@
 **credential**
 **/builds/**
 
-scraper_lambda/main
+scraper_lambda/**/main
 venv
 
 # Binaries for programs and plugins

@@ -1,3 +1,4 @@
+import traceback
 from dataclasses import dataclass
 from typing import Union, Dict, Optional
 import json
@@ -42,11 +43,11 @@ def handle_exception(func):
             Logger.error(e)
             res = e.build()
         except Exception as e:
-            Logger.error(e)
+            Logger.error(e, traceback.format_exc())
             res = InternalServerError(str(e)).build()
-        
+
         Logger.info('Response', res)
-        
+
         return res
 
     return decorator
@@ -87,7 +88,7 @@ class APIGatewayRequest:
             request = APIGatewayRequest(event)
             return func(request, context)
         return decorator
-    
+
     def __str__(self):
         return str({
             **self._event,

@@ -4,6 +4,8 @@ from typing import Union, Dict
 from media_literacy.http import InternalServerError
 from media_literacy.requests import AsyncRequest
 
+ENV = os.environ.get("ENV", "production")
+
 
 class SlackCommandMantra(str, Enum):
     FETCH_LANDING = '/click'
@@ -22,7 +24,7 @@ class _SlackService:
 
     async def send(self, *messages):
         await AsyncRequest.post(self._webhook_url, data={
-            "text": f'[{os.environ.get("ENV")}] ' + ' '.join([str(_message) for _message in messages])
+            "text": f'[{ENV}] ' + ' '.join([str(_message) for _message in messages])
         })
 
     @staticmethod
