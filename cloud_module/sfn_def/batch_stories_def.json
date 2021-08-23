@@ -1,0 +1,13 @@
+{
+    "Comment": "Batch processing stories for a landing page",
+    "StartAt": "BatchStoriesFetchParse",
+    "States": {
+      "BatchStoriesFetchParse":{
+        "Comment": "Fetch and parse all stories",
+        "Type":"Task",
+        "Resource":"${BATCH_STORIES_FETCH_PARSE_LAMBDA_ARN}",
+        "Parameters":{},
+        "End":true
+     }
+    }
+  }

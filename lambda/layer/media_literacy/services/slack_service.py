@@ -1,7 +1,19 @@
 import os
+from enum import Enum
 from typing import Union, Dict
 from media_literacy.http import InternalServerError
 from media_literacy.requests import AsyncRequest
+
+ENV = os.environ.get("ENV", "production")
+
+
+class SlackCommandMantra(str, Enum):
+    FETCH_LANDING = '/click'
+    FETCH_LANDING_STORIES = '/getallstories'
+
+    def __str__(self):
+        return self.value
+
 
 class _SlackService:
 
@@ -12,7 +24,14 @@ class _SlackService:
 
     async def send(self, *messages):
         await AsyncRequest.post(self._webhook_url, data={
-            "text": f'[{os.environ.get("ENV")}]' + ' '.join([str(_message) for _message in messages])
+            "text": f'[{ENV}] ' + ' '.join([str(_message) for _message in messages])
         })
+
+    @staticmethod
+    def parse_command(request_body: dict):
+        command = request_body.get('command')
+        text = request_body.get('text')
+
+
 
 SlackService = _SlackService()
