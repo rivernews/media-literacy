@@ -7,5 +7,5 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.9.0
 	github.com/aws/aws-sdk-go-v2/config v1.7.0
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.8.0
-	github.com/rivernews/GoTools v0.1.5
+	github.com/rivernews/GoTools v0.1.6
 )

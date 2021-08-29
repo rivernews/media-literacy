@@ -29,41 +29,53 @@ type LambdaResponse struct {
 }
 
 func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (LambdaResponse, error) {
-	GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`", stepFunctionInput.LandingS3Key))
+	GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`; going to test delayed messages...", stepFunctionInput.LandingS3Key))
 
 	// TODO: get all story links
-	link := "http://story.com"
-
-	// send SQS
-	// refer to
-	// https://aws.github.io/aws-sdk-go-v2/docs/code-examples/sqs/sendmessage/
-	queueName := GoTools.GetEnvVarHelper("STORIES_QUEUE_NAME")
-	awsConfig, configErr := config.LoadDefaultConfig(context.TODO())
-	if configErr != nil {
-		GoTools.Logger("ERROR", "AWS shared configuration failed", configErr.Error())
+	links := []string{
+		"chunk-00", "chunk-01", "chunk-02", "chunk-03",
 	}
-	sqsClient := sqs.NewFromConfig(awsConfig)
-	getQueueResponse, getQueueError := sqsClient.GetQueueUrl(context.TODO(), &sqs.GetQueueUrlInput{ QueueName: aws.String(queueName) })
-	if getQueueError != nil {
-		GoTools.Logger("ERROR", fmt.Sprintf("Error getting queue URL: %s", getQueueError.Error()))
-	}
-	queueURL := getQueueResponse.QueueUrl
 
-	res, err := sqsClient.SendMessage(context.TODO(), &sqs.SendMessageInput{
-		QueueUrl: queueURL,
-		MessageBody: aws.String(link),
-		// TODO: better group id naming for multiplexing
-		MessageGroupId: aws.String(fmt.Sprintf("%s-00", queueName)),
+	for _, link := range links {
+		// send SQS
+		// refer to
+		// https://aws.github.io/aws-sdk-go-v2/docs/code-examples/sqs/sendmessage/
+		queueName := GoTools.GetEnvVarHelper("STORIES_QUEUE_NAME")
+		awsConfig, configErr := config.LoadDefaultConfig(context.TODO())
+		if configErr != nil {
+			GoTools.Logger("ERROR", "AWS shared configuration failed", configErr.Error())
+		}
+		sqsClient := sqs.NewFromConfig(awsConfig)
+		getQueueResponse, getQueueError := sqsClient.GetQueueUrl(context.TODO(), &sqs.GetQueueUrlInput{ QueueName: aws.String(queueName) })
+		if getQueueError != nil {
+			GoTools.Logger("ERROR", fmt.Sprintf("Error getting queue URL: %s", getQueueError.Error()))
+		}
+		queueURL := getQueueResponse.QueueUrl
 
-		// TODO: add delay
-	})
+		res, err := sqsClient.SendMessage(context.TODO(), &sqs.SendMessageInput{
+			// AWS required attributes
+			// https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SendMessage.html
+			// Golang API Reference
+			// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/sqs#SendMessageInput
 
-	if err != nil {
-		GoTools.Logger("ERROR", fmt.Sprintf("Error sending message: %s", err.Error()))
+			QueueUrl: queueURL,
+			MessageBody: aws.String(link),
+
+			// Only FIFO queue can use `MessageGroupId`
+			// MessageGroupId: aws.String(fmt.Sprintf("%s-00", queueName)),
+
+			// TODO: add randomized delay
+			DelaySeconds: 0,
+		})
+
+		if err != nil {
+			GoTools.Logger("ERROR", fmt.Sprintf("Error sending message: %s", err))
+		}
+		GoTools.SimpleLogger("INFO", fmt.Sprintf("Message sent %s", *res.MessageId))
 	}
 
 	return LambdaResponse{
 		OK: true,
-		Message: fmt.Sprintf("Sent message OK: %s", *res.MessageId),
+		Message: fmt.Sprintf("Sent %d messages OK", len(links)),
 	}, nil
 }

@@ -2,11 +2,19 @@ module "stories_queue" {
   source  = "terraform-aws-modules/sqs/aws"
   version = ">= 2.0, < 3.0"
 
-  name = "${local.project_name}-stories-queue.fifo"
-  delay_seconds = 1
+  # SQS queue attributes: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_CreateQueue.html
 
-  fifo_queue = true
-  content_based_deduplication = true
+  # FIFO queue should append suffix .fifo
+  name = "${local.project_name}-stories-queue"
+
+  delay_seconds = 0
+
+  # so we can use per-message delay
+  fifo_queue = false
+
+  # FIFO queue only
+  # content_based_deduplication = true
+
   visibility_timeout_seconds = 60
 
   # enable long polling
