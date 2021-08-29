@@ -48,6 +48,11 @@ module batch_stories_fetch_parse_lambda {
 
   attach_policy_statements = true
   policy_statements = {
+    pipeline_sqs = {
+      effect    = "Allow",
+      actions   = ["sqs:SendMessage", "sqs:GetQueueUrl"],
+      resources = [module.stories_queue.this_sqs_queue_arn]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -58,6 +63,8 @@ module batch_stories_fetch_parse_lambda {
   }
 
   environment_variables = {
+    STORIES_QUEUE_NAME = module.stories_queue.this_sqs_queue_name
+
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"

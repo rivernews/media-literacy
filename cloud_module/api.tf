@@ -118,6 +118,7 @@ EOF
     BATCH_STORIES_SFN_ARN = module.batch_stories_sfn.state_machine_arn
 
     LOGLEVEL = "DEBUG"
+    ENV = local.environment
 
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
   }

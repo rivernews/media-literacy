@@ -2,6 +2,7 @@ set -e
 
 DEPLOY_DIR=$(git rev-parse --show-toplevel)/cloud_environments/${ENV:-production}
 SCRAPER_SRC_DIR=$(git rev-parse --show-toplevel)/scraper_lambda
+PYTHON_SRC_DIR=$(git rev-parse --show-toplevel)/lambda
 
 set -o allexport
 . ${DEPLOY_DIR}/local.backend.credentials.tfvars
@@ -18,7 +19,9 @@ set +o allexport
 
 if (
     cd $SCRAPER_SRC_DIR/landing && go build -o main && \
-    cd $SCRAPER_SRC_DIR/stories && go build -o main
+    cd $SCRAPER_SRC_DIR/stories && go build -o main && \
+    cd $SCRAPER_SRC_DIR/story && go build -o main && \
+    cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then
     cd $DEPLOY_DIR
 

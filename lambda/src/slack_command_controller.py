@@ -49,9 +49,10 @@ def lambda_handler(request: APIGatewayRequest, context):
             stateMachineArn=os.environ['BATCH_STORIES_SFN_ARN'],
             name=f'media-literacy-sf-batch-stories-{datetime.now().strftime("%Y-%H-%M")}-{secrets.token_hex(nbytes=5)}',
             input=json.dumps({
-                'landingURL': landing_html_key
+                'landingS3Key': landing_html_key
             })
         )
+        SlackService.send(f'landing page key: `{landing_html_key}`')
 
     loop.run_until_complete(SlackService.send(f'You sent a slack command. Processed response: {res}'))
 
