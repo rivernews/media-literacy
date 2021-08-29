@@ -19,7 +19,7 @@ func main() {
 	lambda.Start(HandleRequest)
 }
 
-type LambdaEvent struct {
+type StepFunctionInput struct {
 	LandingS3Key string `json:"landingS3Key"`
 }
 
@@ -28,8 +28,8 @@ type LambdaResponse struct {
 	Message string `json:"message:"`
 }
 
-func HandleRequest(ctx context.Context, event LambdaEvent) (LambdaResponse, error) {
-	GoTools.SendSlackMessage(fmt.Sprintf("Batch stories lambda started! Landing page S3 path: %s", event.LandingS3Key))
+func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (LambdaResponse, error) {
+	GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`", stepFunctionInput.LandingS3Key))
 
 	// TODO: get all story links
 	link := "http://story.com"
@@ -51,9 +51,11 @@ func HandleRequest(ctx context.Context, event LambdaEvent) (LambdaResponse, erro
 
 	res, err := sqsClient.SendMessage(context.TODO(), &sqs.SendMessageInput{
 		QueueUrl: queueURL,
-		MessageBody: aws.String(fmt.Sprintf("{\"storyURL\": \"%s\"}", link)),
+		MessageBody: aws.String(link),
 		// TODO: better group id naming for multiplexing
 		MessageGroupId: aws.String(fmt.Sprintf("%s-00", queueName)),
+
+		// TODO: add delay
 	})
 
 	if err != nil {

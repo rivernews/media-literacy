@@ -5,8 +5,13 @@
       "BatchStoriesFetchParse":{
         "Comment": "Fetch and parse all stories",
         "Type":"Task",
-        "Resource":"${BATCH_STORIES_FETCH_PARSE_LAMBDA_ARN}",
-        "Parameters":{},
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters":{
+          "FunctionName": "${BATCH_STORIES_FETCH_PARSE_LAMBDA_ARN}",
+          "Payload": {
+            "landingS3Key.$": "$.landingS3Key"
+          }
+        },
         "End":true
      }
     }

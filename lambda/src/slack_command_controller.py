@@ -52,7 +52,7 @@ def lambda_handler(request: APIGatewayRequest, context):
                 'landingS3Key': landing_html_key
             })
         )
-        SlackService.send(f'landing page key: `{landing_html_key}`')
+        loop.run_until_complete(SlackService.send(f'received landing page key: `{landing_html_key}`'))
 
     loop.run_until_complete(SlackService.send(f'You sent a slack command. Processed response: {res}'))
 
