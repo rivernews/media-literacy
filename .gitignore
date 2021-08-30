@@ -1,7 +1,9 @@
 **credential**
 **/builds/**
 
-scraper_lambda/**/main
+lambda_golang/landing
+lambda_golang/story
+lambda_golang/stories
 venv
 
 # Binaries for programs and plugins

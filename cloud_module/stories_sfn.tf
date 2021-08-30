@@ -32,13 +32,13 @@ module batch_stories_fetch_parse_lambda {
   create_function = true
   function_name = "${local.project_name}-batch-stories-fetch-parse"
   description   = "Batch fetch and parse all stories of a landing page"
-  handler       = "main"
+  handler       = "stories"
   runtime     = "go1.x"
 
   source_path = [{
-    path = "${path.module}/../scraper_lambda/stories"
-    commands = ["go build -o main", ":zip"]
-    patterns = ["main"]
+    path = "${path.module}/../lambda_golang/"
+    commands = ["go build ./cmd/stories", ":zip"]
+    patterns = ["stories"]
   }]
 
   timeout = 900

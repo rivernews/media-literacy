@@ -1,7 +1,7 @@
 set -e
 
 DEPLOY_DIR=$(git rev-parse --show-toplevel)/cloud_environments/${ENV:-production}
-SCRAPER_SRC_DIR=$(git rev-parse --show-toplevel)/scraper_lambda
+GOLANG_SRC_DIR=$(git rev-parse --show-toplevel)/lambda_golang
 PYTHON_SRC_DIR=$(git rev-parse --show-toplevel)/lambda
 
 set -o allexport
@@ -18,9 +18,10 @@ set +o allexport
 
 
 if (
-    cd $SCRAPER_SRC_DIR/landing && go build -o main && \
-    cd $SCRAPER_SRC_DIR/stories && go build -o main && \
-    cd $SCRAPER_SRC_DIR/story && go build -o main && \
+    cd $GOLANG_SRC_DIR && \
+    go build ./cmd/landing && \
+    go build ./cmd/stories && \
+    go build ./cmd/story && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then
     cd $DEPLOY_DIR

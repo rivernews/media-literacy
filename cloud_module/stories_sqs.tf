@@ -31,12 +31,12 @@ module "stories_queue_consumer_lambda" {
   create_function = true
   function_name = "${local.project_name}-stories-queue-consumer-lambda"
   description   = "Consumes ${local.project_name} stories queue"
-  handler       = "main"
+  handler       = "story"
   runtime     = "go1.x"
   source_path = [{
-    path = "${path.module}/../scraper_lambda/story"
-    commands = ["go build -o main", ":zip"]
-    patterns = ["main"]
+    path = "${path.module}/../lambda_golang/"
+    commands = ["go build ./cmd/story", ":zip"]
+    patterns = ["story"]
   }]
   publish = true
 
