@@ -1,4 +1,4 @@
-package main
+package cloud
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/rivernews/GoTools"
 )
 
-func archive(body io.Reader, key string) (bool, error) {
+func Archive(body io.Reader, key string) (bool, error) {
 	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 	GoTools.Logger("INFO", "Bucket to archive: s3://", bucket, "Key:", key)
 

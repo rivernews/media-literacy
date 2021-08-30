@@ -32,13 +32,13 @@ module batch_stories_fetch_parse_lambda {
   create_function = true
   function_name = "${local.project_name}-batch-stories-fetch-parse"
   description   = "Batch fetch and parse all stories of a landing page"
-  handler       = "main"
+  handler       = "stories"
   runtime     = "go1.x"
 
   source_path = [{
-    path = "${path.module}/../scraper_lambda/stories"
-    commands = ["go build -o main", ":zip"]
-    patterns = ["main"]
+    path = "${path.module}/../lambda_golang/"
+    commands = ["go build ./cmd/stories", ":zip"]
+    patterns = ["stories"]
   }]
 
   timeout = 900
@@ -48,6 +48,11 @@ module batch_stories_fetch_parse_lambda {
 
   attach_policy_statements = true
   policy_statements = {
+    pipeline_sqs = {
+      effect    = "Allow",
+      actions   = ["sqs:SendMessage", "sqs:GetQueueUrl"],
+      resources = [module.stories_queue.this_sqs_queue_arn]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -58,6 +63,8 @@ module batch_stories_fetch_parse_lambda {
   }
 
   environment_variables = {
+    STORIES_QUEUE_NAME = module.stories_queue.this_sqs_queue_name
+
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"

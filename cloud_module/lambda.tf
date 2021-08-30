@@ -61,15 +61,15 @@ module "scraper_lambda" {
   create_function = true
   function_name = "${local.project_name}-scraper-lambda"
   description   = "Lambda function for scraping"
-  handler       = "main"
+  handler       = "landing"
   runtime     = "go1.x"
 
   # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
   # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
   source_path = [{
-    path = "${path.module}/../scraper_lambda/landing"
-    commands = ["go build -o main", ":zip"]
-    patterns = ["main"]
+    path = "${path.module}/../lambda_golang/"
+    commands = ["go build ./cmd/landing", ":zip"]
+    patterns = ["landing"]
   }]
 
   timeout = 900

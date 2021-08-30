@@ -12,6 +12,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/rivernews/GoTools"
+
+	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 func main() {
@@ -28,7 +31,7 @@ type LambdaResponse struct {
 }
 
 func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error) {
-	newsSite := GetNewsSite("NEWSSITE_ECONOMY")
+	newsSite :=  newssite.GetNewsSite("NEWSSITE_ECONOMY")
 	resp, err := http.Get(newsSite.LandingURL)
 	if err != nil {
 		// handle error
@@ -79,7 +82,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	GoTools.Logger("INFO", successMessage)
 
 	// S3 archive
-	archive(strings.NewReader(bodyText), fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, time.Now().Format(time.RFC3339)))
+	cloud.Archive(strings.NewReader(bodyText), fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, time.Now().Format(time.RFC3339)))
 
 	return LambdaResponse{
 		OK: true,
