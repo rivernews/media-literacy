@@ -57,6 +57,7 @@ module batch_stories_fetch_parse_lambda {
       effect    = "Allow",
       actions   = [
         "s3:PutObject",
+        "s3:GetObject"
       ],
       resources = ["${data.aws_s3_bucket.archive.arn}/*"]
     }

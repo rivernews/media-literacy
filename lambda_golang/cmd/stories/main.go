@@ -12,6 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+
+	// local packages
+	"github.com/rivernews/media-literacy/pkg/cloud"
 )
 
 
@@ -30,6 +33,10 @@ type LambdaResponse struct {
 
 func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (LambdaResponse, error) {
 	GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`; going to test delayed messages...", stepFunctionInput.LandingS3Key))
+
+	landingPageHtmlText := cloud.Pull(stepFunctionInput.LandingS3Key)
+
+	GoTools.Logger("INFO", fmt.Sprintf("Pulled landing page content:\n ``` %s ``` \n ", landingPageHtmlText[:500]))
 
 	// TODO: get all story links
 	links := []string{

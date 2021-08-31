@@ -7,30 +7,19 @@ import (
   	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 
 	"github.com/rivernews/GoTools"
+
 )
 
 func Archive(body io.Reader, key string) (bool, error) {
 	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 	GoTools.Logger("INFO", "Bucket to archive: s3://", bucket, "Key:", key)
 
-	// Based on
-	// https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/
-	awsConfig, configErr := config.LoadDefaultConfig(
-		context.TODO(),
-		config.WithRegion("us-west-2"),
-	)
-	if configErr != nil {
-		GoTools.Logger("ERROR", "AWS shared configuration failed", configErr.Error())
-	}
-
   	timeout := time.Second * 30
-
-  	client := s3.NewFromConfig(awsConfig)
+  	client := SharedS3Client()
 
 	// Based on
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Uploader
@@ -64,4 +53,44 @@ func Archive(body io.Reader, key string) (bool, error) {
   	GoTools.Logger("INFO", fmt.Sprintf("successfully uploaded file to `s3://%s/%s`\n", bucket, key))
 
 	return true, nil
+}
+
+func Pull(key string) string {
+	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
+	client := SharedS3Client()
+
+	// based on
+	// https://stackoverflow.com/a/65710928/9814131
+	headObject, headError := client.HeadObject(context.TODO(), &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key: aws.String(key),
+	})
+	if headError != nil {
+		GoTools.Logger("ERROR", headError.Error())
+	}
+
+	// main idea
+	// https://stackoverflow.com/a/41645765/9814131
+	// code based on
+	// https://github.com/aws/aws-sdk-go-v2/pull/1171/files#diff-c43ccf2f39bfbd136d7f7ddf2a1c88ac983d910b687bca29b4a8e6ea9759551b
+	// pre-allocate in memory buffer, where headObject type is *s3.HeadObjectOutput
+	// and
+	// AWS SDK v2 Doc
+	// https://aws.github.io/aws-sdk-go-v2/docs/sdk-utilities/s3/#download-manager
+
+	downloader := manager.NewDownloader(client)
+	buf := make([]byte, int(headObject.ContentLength))
+	// wrap with aws.WriteAtBuffer
+	w := manager.NewWriteAtBuffer(buf)
+	// download file into the memory
+	numBytesDownloaded, err := downloader.Download(context.TODO(), w, &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		GoTools.Logger("ERROR", err.Error())
+	}
+	GoTools.Logger("INFO", fmt.Sprintf("Downloaded %d for `s3://%s/%s`", numBytesDownloaded, bucket, key))
+
+	return string(w.Bytes())
 }
