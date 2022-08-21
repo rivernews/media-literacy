@@ -56,11 +56,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n " + bodyText[:500] + "\n ...```\n End of message")
 
 	// scraper
-	topics, err := getTopTenTrendingTopics(bodyText)
-
-	if err != nil {
-		GoTools.Logger("ERROR", err.Error())
-	}
+	topics := newssite.GetStoriesFromEconomy(bodyText)
 
 	var slackMessage strings.Builder
 	for i, topic := range topics {

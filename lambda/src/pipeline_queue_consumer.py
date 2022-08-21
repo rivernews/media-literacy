@@ -13,7 +13,7 @@ loop = asyncio.get_event_loop()
 # Event shape from SQS
 # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
 def lambda_handler(*args, **kwargs):
-    loop.run_until_complete(async_lambda_handler(*args, **kwargs))
+    return loop.run_until_complete(async_lambda_handler(*args, **kwargs))
 
 async def async_lambda_handler(event, *args):
     await SlackService.send(datetime.now(), 'Pipeline Queue Consumer invoked!')

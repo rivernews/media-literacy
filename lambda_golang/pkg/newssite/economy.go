@@ -1,4 +1,4 @@
-package main
+package newssite
 
 import (
 	"strings"
@@ -13,7 +13,7 @@ type Topic struct {
 	URL         string `json:"url"`
 }
 
-func getTopTenTrendingTopics(body string) ([]Topic, error) {
+func GetStoriesFromEconomy(body string) ([]Topic) {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err != nil {
@@ -43,5 +43,5 @@ func getTopTenTrendingTopics(body string) ([]Topic, error) {
 	})
 	GoTools.Logger("INFO", "Skipped due to empty title URLs:\n", emptyTitleURLs.String())
 
-	return topics, nil
+	return topics
 }

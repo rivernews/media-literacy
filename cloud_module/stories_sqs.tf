@@ -15,7 +15,7 @@ module "stories_queue" {
   # FIFO queue only
   # content_based_deduplication = true
 
-  visibility_timeout_seconds = 60
+  visibility_timeout_seconds = 3600
 
   # enable long polling
   receive_wait_time_seconds = 10
@@ -40,7 +40,7 @@ module "stories_queue_consumer_lambda" {
   }]
   publish = true
 
-  timeout = 30
+  timeout = 900
   cloudwatch_logs_retention_in_days = 7
 
   reserved_concurrent_executions = -1
@@ -65,12 +65,33 @@ module "stories_queue_consumer_lambda" {
       actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
       resources = [module.stories_queue.this_sqs_queue_arn]
     }
+    s3_archive_bucket = {
+      effect    = "Allow",
+      actions   = [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      resources = [
+        "${data.aws_s3_bucket.archive.arn}/*",
+      ]
+    }
+    s3_archive_bucket_check_404 = {
+      effect    = "Allow",
+      actions   = [
+        "s3:ListBucket",
+      ],
+      resources = [
+        "${data.aws_s3_bucket.archive.arn}",
+      ]
+    }
   }
 
   environment_variables = {
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOGLEVEL = "DEBUG"
     ENV = local.environment
+
+    S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
   }
 
   tags = {

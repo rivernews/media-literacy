@@ -5,6 +5,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
+	"math"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/rivernews/GoTools"
@@ -15,6 +17,7 @@ import (
 
 	// local packages
 	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 
@@ -36,14 +39,26 @@ func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (La
 
 	landingPageHtmlText := cloud.Pull(stepFunctionInput.LandingS3Key)
 
-	GoTools.Logger("INFO", fmt.Sprintf("Pulled landing page content:\n ``` %s ``` \n ", landingPageHtmlText[:500]))
+	stories := newssite.GetStoriesFromEconomy(landingPageHtmlText)
 
-	// TODO: get all story links
-	links := []string{
-		"chunk-00", "chunk-01", "chunk-02", "chunk-03",
+	// e.g. 90 links in total
+	// chunk size := 30
+	// chunk count = 3
+	chunkSize := 30
+	chunkCount := int( math.Ceil(float64(len(stories) / chunkSize)) )
+	linkChunks := make([][]string, chunkCount)
+
+	for i := 0; i < chunkCount; i++ {
+		linkChunk := make([]string, chunkSize)
+		for j := 0; j < chunkSize ; j++ {
+			linkChunk[j] = stories[i * chunkSize + j].URL
+		}
+		linkChunks[i] = linkChunk
 	}
 
-	for _, link := range links {
+	GoTools.Logger("INFO", fmt.Sprintf("Pulled landing page content:\n ``` %s ``` \n ", landingPageHtmlText[:500]))
+
+	for _, linkChunk := range linkChunks {
 		// send SQS
 		// refer to
 		// https://aws.github.io/aws-sdk-go-v2/docs/code-examples/sqs/sendmessage/
@@ -66,7 +81,7 @@ func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (La
 			// https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/sqs#SendMessageInput
 
 			QueueUrl: queueURL,
-			MessageBody: aws.String(link),
+			MessageBody: aws.String(strings.Join(linkChunk, " ")),
 
 			// Only FIFO queue can use `MessageGroupId`
 			// MessageGroupId: aws.String(fmt.Sprintf("%s-00", queueName)),
@@ -83,6 +98,6 @@ func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (La
 
 	return LambdaResponse{
 		OK: true,
-		Message: fmt.Sprintf("Sent %d messages OK", len(links)),
+		Message: fmt.Sprintf("Sent %d messages OK", len(linkChunks)),
 	}, nil
 }

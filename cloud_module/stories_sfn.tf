@@ -59,7 +59,20 @@ module batch_stories_fetch_parse_lambda {
         "s3:PutObject",
         "s3:GetObject"
       ],
-      resources = ["${data.aws_s3_bucket.archive.arn}/*"]
+      resources = [
+        "${data.aws_s3_bucket.archive.arn}/*",
+      ]
+    }
+    # enable getting 404 instead of 403 in case of not found
+    # https://stackoverflow.com/a/19808954/9814131
+    s3_archive_bucket_check_404 = {
+      effect    = "Allow",
+      actions   = [
+        "s3:ListBucket",
+      ],
+      resources = [
+        "${data.aws_s3_bucket.archive.arn}",
+      ]
     }
   }
 

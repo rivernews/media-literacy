@@ -5,6 +5,7 @@ import (
   	"io"
   	"fmt"
   	"time"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -55,7 +56,13 @@ func Archive(body io.Reader, key string) (bool, error) {
 	return true, nil
 }
 
-func Pull(key string) string {
+func IsDuplicated(key string) bool {
+	exist, _ := Exist(key)
+
+	return exist
+}
+
+func Exist(key string) (bool, *s3.HeadObjectOutput)  {
 	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 	client := SharedS3Client()
 
@@ -66,8 +73,24 @@ func Pull(key string) string {
 		Key: aws.String(key),
 	})
 	if headError != nil {
+		headErrorMessage := headError.Error()
+		if strings.Contains(headErrorMessage, "404") {
+			return false, nil
+		}
+
 		GoTools.Logger("ERROR", headError.Error())
 	}
+
+	return true, headObject
+}
+
+func Pull(key string) string {
+	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
+	client := SharedS3Client()
+
+	// based on
+	// https://stackoverflow.com/a/65710928/9814131
+	_, headObject := Exist(key)
 
 	// main idea
 	// https://stackoverflow.com/a/41645765/9814131
