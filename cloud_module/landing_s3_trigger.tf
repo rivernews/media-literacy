@@ -12,7 +12,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   lambda_function {
     lambda_function_arn = module.batch_stories_fetch_parse_lambda.lambda_function_arn
     events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "media-literacy-archives/"
+    filter_prefix       = "${local.newssite_economy_alias}/"
     filter_suffix       = ".html"
   }
 
