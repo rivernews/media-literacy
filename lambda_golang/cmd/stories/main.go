@@ -37,6 +37,7 @@ type LambdaResponse struct {
 
 func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
 	// GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`; going to test delayed messages...", stepFunctionInput.LandingS3Key))
+	GoTools.SendSlackMessage("Ha ha!")
 	GoTools.SendSlackMessage(fmt.Sprintf("Hello! ``` %v ```", s3Event))
 
 	return LambdaResponse{

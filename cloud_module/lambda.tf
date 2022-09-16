@@ -68,7 +68,7 @@ module "scraper_lambda" {
   # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
   source_path = [{
     path = "${path.module}/../lambda_golang/"
-    commands = ["go build ./cmd/landing", ":zip"]
+    commands = ["${local.go_build_flags} go build ./cmd/landing", ":zip"]
     patterns = ["landing"]
   }]
 
@@ -103,4 +103,11 @@ module "scraper_lambda" {
   tags = {
     Project = local.project_name
   }
+}
+
+locals {
+  # amd64 is the x86 instruction set
+  # arm is not (like M1), not supported by AWS lambda go runtime yet
+  # https://stackoverflow.com/questions/26951940/how-do-i-make-go-get-to-build-against-x86-64-instead-of-i386
+  go_build_flags = "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 "
 }
