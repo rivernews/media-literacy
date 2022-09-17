@@ -34,7 +34,7 @@ if (
     # https://github.com/terraform-aws-modules/terraform-aws-step-functions/issues/20
     # terraform "$@" \
     #     -target=module.main.module.scraper_lambda \
-    #     -target=module.main.module.batch_stories_fetch_parse_lambda
+    #     -target=module.main.module.landing_parse_metadata_lambda
 
     terraform "$@"
 else

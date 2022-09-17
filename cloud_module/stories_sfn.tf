@@ -4,7 +4,7 @@ module batch_stories_sfn {
   name = "${local.project_name}-batch-stories-sfn"
 
   definition = templatefile("${path.module}/sfn_def/batch_stories_def.json", {
-    BATCH_STORIES_FETCH_PARSE_LAMBDA_ARN = module.batch_stories_fetch_parse_lambda.lambda_function_arn
+    LANDING_PARSE_METADATA_LAMBDA_ARN = module.landing_parse_metadata_lambda.lambda_function_arn
   })
 
   # allow step function to invoke other service
@@ -14,7 +14,7 @@ module batch_stories_sfn {
   service_integrations = {
     lambda = {
       lambda = [
-        module.batch_stories_fetch_parse_lambda.lambda_function_arn
+        module.landing_parse_metadata_lambda.lambda_function_arn
       ]
     }
   }
@@ -27,7 +27,7 @@ module batch_stories_sfn {
 }
 
 
-module batch_stories_fetch_parse_lambda {
+module landing_parse_metadata_lambda {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
   function_name = "${local.project_name}-batch-stories-fetch-parse"

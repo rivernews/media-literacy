@@ -7,7 +7,7 @@
         "Type":"Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "Parameters":{
-          "FunctionName": "${BATCH_STORIES_FETCH_PARSE_LAMBDA_ARN}",
+          "FunctionName": "${LANDING_PARSE_METADATA_LAMBDA_ARN}",
           "Payload": {
             "landingS3Key.$": "$.landingS3Key"
           }
