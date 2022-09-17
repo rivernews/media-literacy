@@ -4,7 +4,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -55,11 +54,7 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 
 		result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
 
-		metadataJSONBytes, metadataJSONStringError := json.Marshal(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
-		if metadataJSONStringError != nil {
-			GoTools.Logger("ERROR", metadataJSONStringError.Error())
-		}
-		metadataJSONString := string(metadataJSONBytes)
+		metadataJSONString := newssite.AsJson(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
 
 		cloud.Archive(cloud.ArchiveArgs{
 			BodyText:          metadataJSONString,

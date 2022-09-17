@@ -1,17 +1,17 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"context"
-	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/rivernews/GoTools"
-	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 func main() {
@@ -26,35 +26,42 @@ type LambdaResponse struct {
 
 // SQS event
 // refer to https://github.com/aws/aws-lambda-go/blob/v1.26.0/events/README_SQS.md
-func HandleRequest(ctx context.Context, event events.SQSEvent) (LambdaResponse, error) {
-	for _, message := range event.Records {
-		storyChunk := message.Body
-		GoTools.Logger("INFO", fmt.Sprintf("Story consumer! story chunk: %s", storyChunk))
+func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse, error) {
+	GoTools.Logger("INFO", "Fetch stories lambda launched ... triggered by metadata.json creation.")
 
-		// TODO: fetch and archive for the chunk of storyURLs
-		storyURLs := strings.Split(storyChunk, " ")
+	for _, record := range S3Event.Records {
 
-		for _, storyURL := range storyURLs {
-			// TODO: randomized interval
-			time.Sleep(time.Duration(rand.Intn(5)+5) * time.Second)
+		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", newssite.AsJson(record)))
+		/*
+			storyChunk := message.Body
+			GoTools.Logger("INFO", fmt.Sprintf("Story consumer! story chunk: %s", storyChunk))
 
-			storyS3Path := fmt.Sprintf("story/%s", storyURL)
+			// TODO: fetch and archive for the chunk of storyURLs
+			storyURLs := strings.Split(storyChunk, " ")
 
-			if !cloud.IsDuplicated(storyS3Path) {
-				GoTools.Logger("INFO", fmt.Sprintf("Archiving story %s", storyURL))
-			} else {
-				GoTools.Logger("DEBUG", fmt.Sprintf("Skip archiving story %s", storyURL))
+			for _, storyURL := range storyURLs {
+				// TODO: randomized interval
+				time.Sleep(time.Duration(rand.Intn(5)+5) * time.Second)
+
+				storyS3Path := fmt.Sprintf("story/%s", storyURL)
+
+				if !cloud.IsDuplicated(storyS3Path) {
+					GoTools.Logger("INFO", fmt.Sprintf("Archiving story %s", storyURL))
+				} else {
+					GoTools.Logger("DEBUG", fmt.Sprintf("Skip archiving story %s", storyURL))
+				}
+
+				// _, resMessage, err := GoTools.Fetch(GoTools.FetchOption{
+				// 	Method: "GET",
+				// 	URL: "https://ipv4bot.whatismyipaddress.com",
+				// })
+				// if err != nil {
+				// 	GoTools.Logger("ERROR", err.Error())
+				// }
+				// GoTools.Logger("INFO", fmt.Sprintf("%s-%s ip: %s", storyChunkId, storyURL, resMessage))
 			}
 
-			// _, resMessage, err := GoTools.Fetch(GoTools.FetchOption{
-			// 	Method: "GET",
-			// 	URL: "https://ipv4bot.whatismyipaddress.com",
-			// })
-			// if err != nil {
-			// 	GoTools.Logger("ERROR", err.Error())
-			// }
-			// GoTools.Logger("INFO", fmt.Sprintf("%s-%s ip: %s", storyChunkId, storyURL, resMessage))
-		}
+		*/
 	}
 
 	return LambdaResponse{
