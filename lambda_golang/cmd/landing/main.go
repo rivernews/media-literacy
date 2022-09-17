@@ -57,10 +57,11 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n "+bodyText[:500]+"\n ...```\n End of message")
 
 	// scraper
-	topics := newssite.GetStoriesFromEconomy(bodyText)
+	result := newssite.GetStoriesFromEconomy(bodyText)
 
+	// print out all story titles
 	var slackMessage strings.Builder
-	for i, topic := range topics {
+	for i, topic := range result.Topics {
 		slackMessage.WriteString(topic.Name)
 		slackMessage.WriteString(" ")
 		slackMessage.WriteString(topic.Description)
@@ -75,7 +76,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	}
 	GoTools.SendSlackMessage(slackMessage.String())
 
-	successMessage := fmt.Sprintf("Scraper finished - %d links found", len(topics))
+	successMessage := fmt.Sprintf("Scraper finished - %d links found", len(result.Topics))
 	GoTools.Logger("INFO", successMessage)
 
 	// S3 archive

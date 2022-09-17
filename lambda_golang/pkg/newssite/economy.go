@@ -3,8 +3,8 @@ package newssite
 import (
 	"strings"
 
-	"github.com/rivernews/GoTools"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/rivernews/GoTools"
 )
 
 type Topic struct {
@@ -13,35 +13,45 @@ type Topic struct {
 	URL         string `json:"url"`
 }
 
-func GetStoriesFromEconomy(body string) ([]Topic) {
+type GetStoriesFromEconomyResult struct {
+	Topics         []Topic
+	UntitledTopics []Topic
+}
+
+func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err != nil {
 		GoTools.Logger("ERROR", err.Error())
 	}
 
-	GoTools.Logger("INFO", "GoQuery " + string(doc.Find("title").Text()))
+	GoTools.Logger("INFO", "GoQuery "+string(doc.Find("title").Text()))
 
 	// Find the review items
 	var topics []Topic
+	var untitledTopics []Topic
 	// goquery api
 	// https://pkg.go.dev/github.com/PuerkitoBio/goquery
 	var emptyTitleURLs strings.Builder
 	doc.Find("a[href$=html]").Each(func(i int, anchor *goquery.Selection) {
 		topic := Topic{
-			Name: anchor.Text(),
+			Name:        strings.TrimSpace(anchor.Text()),
 			Description: "",
-			URL: anchor.AttrOr("href", "-"),
+			URL:         strings.TrimSpace(anchor.AttrOr("href", "-")),
 		}
 		if topic.Name != "" {
 			topics = append(topics, topic)
 			GoTools.Logger("DEBUG", "Found an anchor ", topic.Name, topic.URL)
 		} else {
+			untitledTopics = append(untitledTopics, topic)
 			emptyTitleURLs.WriteString(topic.URL)
 			emptyTitleURLs.WriteString("\n")
 		}
 	})
 	GoTools.Logger("INFO", "Skipped due to empty title URLs:\n", emptyTitleURLs.String())
 
-	return topics
+	return GetStoriesFromEconomyResult{
+		Topics:         topics,
+		UntitledTopics: untitledTopics,
+	}
 }

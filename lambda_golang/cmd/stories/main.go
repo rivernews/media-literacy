@@ -37,23 +37,24 @@ type LambdaResponse struct {
 }
 
 type LandingPageMetadata struct {
-	Stories []newssite.Topic `json:"stories"`
+	Stories         []newssite.Topic `json:"stories"`
+	UntitledStories []newssite.Topic `json:"untitledstories"`
 }
 
 func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
-	GoTools.SendSlackMessage("Landing page metadata.json generator launched")
+	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
 
 	landingPageS3Key := s3Event.Records[0].S3.Object.URLDecodedKey
-	GoTools.SendSlackMessage(fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
+	GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
 
 	landingPageHtmlText := cloud.Pull(landingPageS3Key)
 	landingPageS3KeyTokens := strings.Split(landingPageS3Key, "/")
 	metadataS3DirKeyTokens := landingPageS3KeyTokens[:len(landingPageS3KeyTokens)-1]
 	metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
 
-	stories := newssite.GetStoriesFromEconomy(landingPageHtmlText)
+	result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
 
-	metadataJSONBytes, metadataJSONStringError := json.Marshal(LandingPageMetadata{Stories: stories})
+	metadataJSONBytes, metadataJSONStringError := json.Marshal(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
 	if metadataJSONStringError != nil {
 		GoTools.Logger("ERROR", metadataJSONStringError.Error())
 	}
