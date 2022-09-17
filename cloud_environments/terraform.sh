@@ -16,7 +16,7 @@ TF_VAR_slack_signing_secret=${slack_signing_secret}
 TF_VAR_slack_post_webhook_url=${slack_post_webhook_url}
 set +o allexport
 
-
+# below is just for testing golang build! The actual build command is in terraform lambda module `command` property
 if (
     cd $GOLANG_SRC_DIR && \
     go build ./cmd/landing && \

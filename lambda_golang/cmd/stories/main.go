@@ -5,19 +5,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
-	"math"
+	//"strings"
+	//"math"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-lambda-go/events" // https://github.com/aws/aws-lambda-go/blob/main/events/README_S3.md
 	"github.com/rivernews/GoTools"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	//"github.com/aws/aws-sdk-go-v2/aws"
+	//"github.com/aws/aws-sdk-go-v2/config"
+	//"github.com/aws/aws-sdk-go-v2/service/sqs"
 
 	// local packages
-	"github.com/rivernews/media-literacy/pkg/cloud"
-	"github.com/rivernews/media-literacy/pkg/newssite"
+	//"github.com/rivernews/media-literacy/pkg/cloud"
+	//"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 
@@ -34,9 +35,17 @@ type LambdaResponse struct {
 	Message string `json:"message:"`
 }
 
-func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (LambdaResponse, error) {
-	GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`; going to test delayed messages...", stepFunctionInput.LandingS3Key))
+func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
+	// GoTools.Logger("INFO", fmt.Sprintf("Batch stories lambda started! Landing page S3 path: `%s`; going to test delayed messages...", stepFunctionInput.LandingS3Key))
+	GoTools.SendSlackMessage("Ha ha!")
+	GoTools.SendSlackMessage(fmt.Sprintf("Hello! ``` %v ```", s3Event))
 
+	return LambdaResponse{
+		OK: true,
+		Message: "Done",
+	}, nil
+
+	/*
 	landingPageHtmlText := cloud.Pull(stepFunctionInput.LandingS3Key)
 
 	stories := newssite.GetStoriesFromEconomy(landingPageHtmlText)
@@ -100,4 +109,6 @@ func HandleRequest(ctx context.Context, stepFunctionInput StepFunctionInput) (La
 		OK: true,
 		Message: fmt.Sprintf("Sent %d messages OK", len(linkChunks)),
 	}, nil
+
+	*/
 }
