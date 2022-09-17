@@ -61,7 +61,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 
 	// print out all story titles
 	var slackMessage strings.Builder
-	for i, topic := range result.Topics {
+	for i, topic := range result.Stories {
 		slackMessage.WriteString(topic.Name)
 		slackMessage.WriteString(" ")
 		slackMessage.WriteString(topic.Description)
@@ -76,7 +76,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	}
 	GoTools.SendSlackMessage(slackMessage.String())
 
-	successMessage := fmt.Sprintf("Scraper finished - %d links found", len(result.Topics))
+	successMessage := fmt.Sprintf("Scraper finished - %d links found", len(result.Stories))
 	GoTools.Logger("INFO", successMessage)
 
 	// S3 archive

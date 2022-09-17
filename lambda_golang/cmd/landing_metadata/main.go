@@ -35,11 +35,6 @@ type LambdaResponse struct {
 	Message string `json:"message:"`
 }
 
-type LandingPageMetadata struct {
-	Stories         []newssite.Topic `json:"stories"`
-	UntitledStories []newssite.Topic `json:"untitledstories"`
-}
-
 func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
 	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
 
@@ -53,8 +48,7 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 		metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
 
 		result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
-
-		metadataJSONString := newssite.AsJson(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
+		metadataJSONString := newssite.AsJson(result)
 
 		cloud.Archive(cloud.ArchiveArgs{
 			BodyText:          metadataJSONString,

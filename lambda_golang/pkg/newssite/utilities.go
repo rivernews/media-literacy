@@ -34,3 +34,9 @@ func AsJson(v any) string {
 	}
 	return string(jsonBytes)
 }
+
+func FromJson(b []byte, structInstance any) {
+	if err := json.Unmarshal(b, structInstance); err != nil {
+		GoTools.Logger("ERROR", err.Error())
+	}
+}

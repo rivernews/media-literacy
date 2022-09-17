@@ -13,12 +13,12 @@ type Topic struct {
 	URL         string `json:"url"`
 }
 
-type GetStoriesFromEconomyResult struct {
-	Topics         []Topic
-	UntitledTopics []Topic
+type LandingPageMetadata struct {
+	Stories         []Topic `json:"stories"`
+	UntitledStories []Topic `json:"untitledstories"`
 }
 
-func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
+func GetStoriesFromEconomy(body string) LandingPageMetadata {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err != nil {
@@ -50,8 +50,8 @@ func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
 	})
 	GoTools.Logger("INFO", "Skipped due to empty title URLs:\n", emptyTitleURLs.String())
 
-	return GetStoriesFromEconomyResult{
-		Topics:         topics,
-		UntitledTopics: untitledTopics,
+	return LandingPageMetadata{
+		Stories:         topics,
+		UntitledStories: untitledTopics,
 	}
 }
