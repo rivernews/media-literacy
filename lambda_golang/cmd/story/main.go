@@ -6,14 +6,13 @@ import (
 
 	"context"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
-	"math/rand"
 
 	"github.com/rivernews/GoTools"
 	"github.com/rivernews/media-literacy/pkg/cloud"
 )
-
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -21,7 +20,7 @@ func main() {
 }
 
 type LambdaResponse struct {
-	OK bool `json:"OK:"`
+	OK      bool   `json:"OK:"`
 	Message string `json:"message:"`
 }
 
@@ -37,7 +36,7 @@ func HandleRequest(ctx context.Context, event events.SQSEvent) (LambdaResponse, 
 
 		for _, storyURL := range storyURLs {
 			// TODO: randomized interval
-			time.Sleep(time.Duration(rand.Intn(5) + 5) * time.Second)
+			time.Sleep(time.Duration(rand.Intn(5)+5) * time.Second)
 
 			storyS3Path := fmt.Sprintf("story/%s", storyURL)
 
@@ -59,7 +58,7 @@ func HandleRequest(ctx context.Context, event events.SQSEvent) (LambdaResponse, 
 	}
 
 	return LambdaResponse{
-		OK: true,
+		OK:      true,
 		Message: "Story consumer fetch parse ok",
 	}, nil
 }

@@ -44,32 +44,32 @@ type LandingPageMetadata struct {
 func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
 	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
 
-	landingPageS3Key := s3Event.Records[0].S3.Object.URLDecodedKey
-	GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
+	for _, record := range s3Event.Records {
+		landingPageS3Key := record.S3.Object.URLDecodedKey
+		GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
 
-	landingPageHtmlText := cloud.Pull(landingPageS3Key)
-	landingPageS3KeyTokens := strings.Split(landingPageS3Key, "/")
-	metadataS3DirKeyTokens := landingPageS3KeyTokens[:len(landingPageS3KeyTokens)-1]
-	metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
+		landingPageHtmlText := cloud.Pull(landingPageS3Key)
+		landingPageS3KeyTokens := strings.Split(landingPageS3Key, "/")
+		metadataS3DirKeyTokens := landingPageS3KeyTokens[:len(landingPageS3KeyTokens)-1]
+		metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
 
-	result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
+		result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
 
-	metadataJSONBytes, metadataJSONStringError := json.Marshal(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
-	if metadataJSONStringError != nil {
-		GoTools.Logger("ERROR", metadataJSONStringError.Error())
+		metadataJSONBytes, metadataJSONStringError := json.Marshal(LandingPageMetadata{Stories: result.Topics, UntitledStories: result.UntitledTopics})
+		if metadataJSONStringError != nil {
+			GoTools.Logger("ERROR", metadataJSONStringError.Error())
+		}
+		metadataJSONString := string(metadataJSONBytes)
+
+		cloud.Archive(cloud.ArchiveArgs{
+			BodyText:          metadataJSONString,
+			Key:               metadataS3Key,
+			FileTypeExtension: "json",
+		})
+
+		bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
+		GoTools.Logger("INFO", fmt.Sprintf("Saved landing page metadata to s3://%s/%s", bucket, metadataS3Key))
 	}
-	metadataJSONString := string(metadataJSONBytes)
-
-	cloud.Archive(cloud.ArchiveArgs{
-		BodyText:          metadataJSONString,
-		Key:               metadataS3Key,
-		FileTypeExtension: "json",
-	})
-
-	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
-	GoTools.Logger("INFO", fmt.Sprintf("Saved landing page metadata to s3://%s/%s", bucket, metadataS3Key))
-
-	// TODO: filter stories?
 
 	return LambdaResponse{
 		OK:      true,
