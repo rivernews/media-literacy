@@ -1,13 +1,14 @@
 package main
 
 import (
-	"io"
-	"fmt"
-	"strings"
-	"net/http"
-	"golang.org/x/net/html/charset"
 	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"time"
+
+	"golang.org/x/net/html/charset"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -26,12 +27,12 @@ type LambdaEvent struct {
 }
 
 type LambdaResponse struct {
-	OK bool `json:"OK:"`
+	OK      bool   `json:"OK:"`
 	Message string `json:"message:"`
 }
 
 func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error) {
-	newsSite :=  newssite.GetNewsSite("NEWSSITE_ECONOMY")
+	newsSite := newssite.GetNewsSite("NEWSSITE_ECONOMY")
 	resp, err := http.Get(newsSite.LandingURL)
 	if err != nil {
 		// handle error
@@ -41,7 +42,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 
 	contentType := resp.Header.Get("Content-Type") // Optional, better guessing
 	GoTools.Logger("INFO", "ContentType is ", contentType)
-    utf8reader, err := charset.NewReader(resp.Body, contentType)
+	utf8reader, err := charset.NewReader(resp.Body, contentType)
 	if err != nil {
 		GoTools.Logger("ERROR", err.Error())
 	}
@@ -53,7 +54,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	}
 	bodyText := string(body)
 
-	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n " + bodyText[:500] + "\n ...```\n End of message")
+	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n "+bodyText[:500]+"\n ...```\n End of message")
 
 	// scraper
 	topics := newssite.GetStoriesFromEconomy(bodyText)
@@ -67,7 +68,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 		slackMessage.WriteString(topic.URL)
 		slackMessage.WriteString("\n")
 
-		if i+1 % 50 == 0 {
+		if i+1%50 == 0 {
 			GoTools.SendSlackMessage(slackMessage.String())
 			slackMessage.Reset()
 		}
@@ -78,10 +79,13 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	GoTools.Logger("INFO", successMessage)
 
 	// S3 archive
-	cloud.Archive(strings.NewReader(bodyText), fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, time.Now().Format(time.RFC3339)))
+	cloud.Archive(cloud.ArchiveArgs{
+		BodyText: bodyText,
+		Key:      fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, time.Now().Format(time.RFC3339)),
+	})
 
 	return LambdaResponse{
-		OK: true,
+		OK:      true,
 		Message: "Slack command submitted successfully",
 	}, nil
 }

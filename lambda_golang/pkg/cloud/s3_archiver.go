@@ -2,56 +2,65 @@ package cloud
 
 import (
 	"context"
-  	"io"
-  	"fmt"
-  	"time"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/rivernews/GoTools"
-
 )
 
-func Archive(body io.Reader, key string) (bool, error) {
-	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
-	GoTools.Logger("INFO", "Bucket to archive: s3://", bucket, "Key:", key)
+type ArchiveArgs struct {
+	BodyText          string
+	Key               string
+	FileTypeExtension string
+}
 
-  	timeout := time.Second * 30
-  	client := SharedS3Client()
+func Archive(args ArchiveArgs) (bool, error) {
+	fileTypeExtension := "text/html"
+	if strings.ToLower(args.FileTypeExtension) == "json" {
+		fileTypeExtension = "application/json"
+	}
+
+	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
+	GoTools.Logger("INFO", "Bucket to archive: `s3://", bucket, "` Key: `", args.Key, "`")
+
+	timeout := time.Second * 30
+	client := SharedS3Client()
 
 	// Based on
 	// https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#Uploader
 	uploader := manager.NewUploader(client)
 
-  	// Create a context with a timeout that will abort the upload if it takes
-  	// more than the passed in timeout.
-  	ctx := context.Background()
-  	var cancelFn func()
-  	if timeout > 0 {
-  		ctx, cancelFn = context.WithTimeout(ctx, timeout)
-  	}
-  	// Ensure the context is canceled to prevent leaking.
-  	// See context package for more information, https://golang.org/pkg/context/
+	// Create a context with a timeout that will abort the upload if it takes
+	// more than the passed in timeout.
+	ctx := context.Background()
+	var cancelFn func()
+	if timeout > 0 {
+		ctx, cancelFn = context.WithTimeout(ctx, timeout)
+	}
+	// Ensure the context is canceled to prevent leaking.
+	// See context package for more information, https://golang.org/pkg/context/
 	if cancelFn != nil {
-  		defer cancelFn()
+		defer cancelFn()
 	}
 
-  	// Uploads the object to S3. The Context will interrupt the request if the
-  	// timeout expires.
-  	_, err := uploader.Upload(ctx, &s3.PutObjectInput{
-  		Bucket: aws.String(bucket),
-  		Key:    aws.String(key),
-  		Body:   body,
-		ContentType: aws.String("text/html"),
-  	})
-  	if err != nil {
+	// Uploads the object to S3. The Context will interrupt the request if the
+	// timeout expires.
+	_, err := uploader.Upload(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(args.Key),
+		Body:        strings.NewReader(args.BodyText),
+		ContentType: aws.String(fileTypeExtension),
+	})
+	if err != nil {
 		GoTools.Logger("ERROR", fmt.Sprintf("failed to upload object: %v", err))
-  	}
+	}
 
-  	GoTools.Logger("INFO", fmt.Sprintf("successfully uploaded file to `s3://%s/%s`\n", bucket, key))
+	GoTools.Logger("INFO", fmt.Sprintf("successfully uploaded file to `s3://%s/%s`\n", bucket, args.Key))
 
 	return true, nil
 }
@@ -62,7 +71,7 @@ func IsDuplicated(key string) bool {
 	return exist
 }
 
-func Exist(key string) (bool, *s3.HeadObjectOutput)  {
+func Exist(key string) (bool, *s3.HeadObjectOutput) {
 	bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 	client := SharedS3Client()
 
@@ -70,7 +79,7 @@ func Exist(key string) (bool, *s3.HeadObjectOutput)  {
 	// https://stackoverflow.com/a/65710928/9814131
 	headObject, headError := client.HeadObject(context.TODO(), &s3.HeadObjectInput{
 		Bucket: aws.String(bucket),
-		Key: aws.String(key),
+		Key:    aws.String(key),
 	})
 	if headError != nil {
 		headErrorMessage := headError.Error()
