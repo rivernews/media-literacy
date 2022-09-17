@@ -35,7 +35,7 @@ func GetStoriesFromEconomy(body string) LandingPageMetadata {
 	var emptyTitleURLs strings.Builder
 	doc.Find("a[href$=html]").Each(func(i int, anchor *goquery.Selection) {
 		topic := Topic{
-			Name:        strings.TrimSpace(anchor.Text()),
+			Name:        strings.ReplaceAll(strings.TrimSpace(anchor.Text()), "/", "-"),
 			Description: "",
 			URL:         strings.TrimSpace(anchor.AttrOr("href", "-")),
 		}

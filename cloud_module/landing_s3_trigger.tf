@@ -21,7 +21,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     lambda_function_arn = module.landing_parse_metadata_lambda.lambda_function_arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "${local.newssite_economy_alias}/"
-    filter_suffix       = ".html"
+    filter_suffix       = "landing.html"
   }
 
   lambda_function {

@@ -3,12 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"time"
-
-	"golang.org/x/net/html/charset"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -33,27 +29,8 @@ type LambdaResponse struct {
 
 func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error) {
 	newsSite := newssite.GetNewsSite("NEWSSITE_ECONOMY")
-	resp, err := http.Get(newsSite.LandingURL)
-	if err != nil {
-		// handle error
-		GoTools.Logger("ERROR", err.Error())
-	}
-	defer resp.Body.Close()
 
-	contentType := resp.Header.Get("Content-Type") // Optional, better guessing
-	GoTools.Logger("INFO", "ContentType is ", contentType)
-	utf8reader, err := charset.NewReader(resp.Body, contentType)
-	if err != nil {
-		GoTools.Logger("ERROR", err.Error())
-	}
-
-	body, err := io.ReadAll(utf8reader)
-	if err != nil {
-		// handle error
-		GoTools.Logger("ERROR", err.Error())
-	}
-	bodyText := string(body)
-
+	bodyText := newssite.Fetch(newsSite.LandingURL)
 	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n "+bodyText[:500]+"\n ...```\n End of message")
 
 	// scraper

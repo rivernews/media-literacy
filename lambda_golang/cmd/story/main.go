@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -34,11 +35,22 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 
 		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", newssite.AsJson(record)))
 
+		metadataS3KeyTokens := strings.Split(record.S3.Object.URLDecodedKey, "/")
+		newsSiteAlias := metadataS3KeyTokens[0]
+		landingPageTimeStamp := metadataS3KeyTokens[len(metadataS3KeyTokens)-2]
+
 		metadataJSONString := cloud.Pull(record.S3.Object.URLDecodedKey)
 		var metadata newssite.LandingPageMetadata
 		newssite.FromJson([]byte(metadataJSONString), &metadata)
 
 		GoTools.Logger("INFO", fmt.Sprintf("Test first story: %d:%d", len(metadata.Stories), len(metadata.UntitledStories)))
+
+		story := metadata.Stories[0]
+		storyHtmlBodyText := newssite.Fetch(story.URL)
+		cloud.Archive(cloud.ArchiveArgs{
+			BodyText: storyHtmlBodyText,
+			Key:      fmt.Sprintf("%s/stories/%s-%s/story.html", newsSiteAlias, landingPageTimeStamp, story.Name),
+		})
 
 		/*
 			storyChunk := message.Body
