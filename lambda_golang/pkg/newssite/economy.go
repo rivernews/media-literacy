@@ -18,6 +18,18 @@ type LandingPageMetadata struct {
 	UntitledStories []Topic `json:"untitledstories"`
 }
 
+type StepFunctionInput struct {
+	Stories              []Topic `json:"stories"`
+	NewsSiteAlias        string  `json:"newsSiteAlias"`
+	LandingPageTimeStamp string  `json:"landingPageTimeStamp"`
+}
+
+type StepFunctionMapIterationInput struct {
+	Story                Topic  `json:"story"`
+	NewsSiteAlias        string `json:"newsSiteAlias"`
+	LandingPageTimeStamp string `json:"landingPageTimeStamp"`
+}
+
 func GetStoriesFromEconomy(body string) LandingPageMetadata {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))

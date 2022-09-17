@@ -29,14 +29,14 @@ module "stories_queue_consumer_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_function = true
-  function_name = "${local.project_name}-stories-queue-consumer-lambda"
-  description   = "Consumes ${local.project_name} stories queue"
-  handler       = "story"
+  function_name = "${local.project_name}-fetch-stories"
+  description   = "Fetch ${local.project_name} stories; triggered by metadata.json creation"
+  handler       = "stories"
   runtime     = "go1.x"
   source_path = [{
     path = "${path.module}/../lambda_golang/"
-    commands = ["${local.go_build_flags} go build ./cmd/story", ":zip"]
-    patterns = ["story"]
+    commands = ["${local.go_build_flags} go build ./cmd/stories", ":zip"]
+    patterns = ["stories"]
   }]
   publish = true
 
@@ -44,6 +44,23 @@ module "stories_queue_consumer_lambda" {
   cloudwatch_logs_retention_in_days = 7
 
   reserved_concurrent_executions = -1
+
+  # allow lambda to invoke step function
+  attach_policy_json = true
+  policy_json        = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "states:StartExecution"
+            ],
+            "Resource": ["${module.batch_stories_sfn.state_machine_arn}"]
+        }
+    ]
+}
+EOF
 
   # event source mapping for long polling
   event_source_mapping = {
@@ -92,6 +109,7 @@ module "stories_queue_consumer_lambda" {
     ENV = local.environment
 
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+    SFN_ARN = module.batch_stories_sfn.state_machine_arn
   }
 
   tags = {

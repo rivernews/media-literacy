@@ -93,29 +93,11 @@ module "slack_command_lambda" {
     }
   }
 
-  # allow lambda to invoke step function
-  attach_policy_json = true
-  policy_json        = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "states:StartExecution"
-            ],
-            "Resource": ["${module.batch_stories_sfn.state_machine_arn}"]
-        }
-    ]
-}
-EOF
-
   environment_variables = {
     SLACK_SIGNING_SECRET = var.slack_signing_secret
     SLACK_POST_WEBHOOK_URL = var.slack_post_webhook_url
 
     PIPELINE_QUEUE_NAME = module.pipeline_queue.this_sqs_queue_name
-    BATCH_STORIES_SFN_ARN = module.batch_stories_sfn.state_machine_arn
 
     LOGLEVEL = "DEBUG"
     ENV = local.environment
