@@ -48,7 +48,7 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 		metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
 
 		result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
-		metadataJSONString := newssite.AsJson(result)
+		metadataJSONString := GoTools.AsJson(result)
 
 		cloud.Archive(cloud.ArchiveArgs{
 			BodyText:          metadataJSONString,

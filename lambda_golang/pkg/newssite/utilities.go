@@ -1,7 +1,6 @@
 package newssite
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -28,20 +27,6 @@ func GetNewsSite(envVar string) NewsSite {
 		Name:       tokens[1],
 		Alias:      tokens[2],
 		LandingURL: tokens[3],
-	}
-}
-
-func AsJson(v any) string {
-	jsonBytes, err := json.Marshal(v)
-	if err != nil {
-		GoTools.Logger("ERROR", err.Error())
-	}
-	return string(jsonBytes)
-}
-
-func FromJson(b []byte, structInstance any) {
-	if err := json.Unmarshal(b, structInstance); err != nil {
-		GoTools.Logger("ERROR", err.Error())
 	}
 }
 

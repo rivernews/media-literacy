@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.7.0
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.5.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.14.0
-	github.com/rivernews/GoTools v0.1.8
+	github.com/rivernews/GoTools v0.2.2
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
 )
 

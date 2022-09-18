@@ -37,7 +37,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 
 	for _, record := range S3Event.Records {
 
-		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", newssite.AsJson(record)))
+		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", GoTools.AsJson(record)))
 
 		metadataS3KeyTokens := strings.Split(record.S3.Object.URLDecodedKey, "/")
 		newsSiteAlias := metadataS3KeyTokens[0]
@@ -45,20 +45,12 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 
 		metadataJSONString := cloud.Pull(record.S3.Object.URLDecodedKey)
 		var metadata newssite.LandingPageMetadata
-		newssite.FromJson([]byte(metadataJSONString), &metadata)
+		GoTools.FromJson([]byte(metadataJSONString), &metadata)
 
 		GoTools.Logger("INFO", fmt.Sprintf("Test first story: %d:%d", len(metadata.Stories), len(metadata.UntitledStories)))
 
-		// TODO: move below into sfn map lambda
-		story := metadata.Stories[0]
-		storyHtmlBodyText := newssite.Fetch(story.URL)
-		cloud.Archive(cloud.ArchiveArgs{
-			BodyText: storyHtmlBodyText,
-			Key:      fmt.Sprintf("%s/stories/%s-%s/story.html", newsSiteAlias, landingPageTimeStamp, story.Name),
-		})
-
 		// fire step function, input = {stories: [{}, {}, {}...], newsSiteAlias:"", landingPageTimeStamp:""}
-		sfnInput := newssite.AsJson(&newssite.StepFunctionInput{
+		sfnInput := GoTools.AsJson(&newssite.StepFunctionInput{
 			Stories:              metadata.Stories,
 			NewsSiteAlias:        newsSiteAlias,
 			LandingPageTimeStamp: landingPageTimeStamp,
@@ -76,7 +68,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 			},
 		)
 
-		GoTools.Logger("INFO", fmt.Sprintf("Sfn output ``` %s ```\n", newssite.AsJson(sfnOutput)))
+		GoTools.Logger("INFO", fmt.Sprintf("Sfn output ``` %s ```\n", GoTools.AsJson(sfnOutput)))
 
 		/*
 			storyChunk := message.Body

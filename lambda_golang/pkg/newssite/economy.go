@@ -53,7 +53,7 @@ func GetStoriesFromEconomy(body string) LandingPageMetadata {
 		}
 		if topic.Name != "" {
 			topics = append(topics, topic)
-			GoTools.Logger("DEBUG", "Found an anchor ", topic.Name, topic.URL)
+			GoTools.Logger("VERBOSE", "Found an anchor ", topic.Name, topic.URL)
 		} else {
 			untitledTopics = append(untitledTopics, topic)
 			emptyTitleURLs.WriteString(topic.URL)
