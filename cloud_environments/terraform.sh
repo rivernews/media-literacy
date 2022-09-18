@@ -21,6 +21,7 @@ if (
     cd $GOLANG_SRC_DIR && \
     go build ./cmd/landing && \
     go build ./cmd/landing_metadata && \
+    go build ./cmd/stories && \
     go build ./cmd/story && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then

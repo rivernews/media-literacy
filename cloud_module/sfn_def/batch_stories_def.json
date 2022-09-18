@@ -1,18 +1,38 @@
 {
-    "Comment": "Batch processing stories for a landing page",
-    "StartAt": "BatchStoriesFetchParse",
-    "States": {
-      "BatchStoriesFetchParse":{
-        "Comment": "Fetch and parse all stories",
-        "Type":"Task",
-        "Resource": "arn:aws:states:::lambda:invoke",
-        "Parameters":{
-          "FunctionName": "${LANDING_PARSE_METADATA_LAMBDA_ARN}",
-          "Payload": {
-            "landingS3Key.$": "$.landingS3Key"
+  "Comment": "Batch processing stories for a landing page",
+  "StartAt": "Fetch-All",
+  "States": {
+    "Fetch-All": {
+      "Type": "Map",
+      "InputPath": "$",
+      "ItemsPath": "$.stories",
+      "MaxConcurrency": 28,
+      "ResultPath": "$.stories",
+      "Comment": "`Parameters` replaces `InputPath`, see https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-map-state.html ",
+      "Parameters": {
+        "story.$": "$$.Map.Item.Value",
+        "newsSiteAlias.$": "$.newsSiteAlias",
+        "landingPageTimeStamp.$": "$.landingPageTimeStamp"
+      },
+      "Iterator": {
+        "StartAt": "Fetch",
+        "States": {
+          "Fetch": {
+            "Type": "Task",
+            "Resource": "${FETCH_STORY_LAMBDA_ARN}",
+            "Retry" : [
+              {
+                "ErrorEquals": [ "States.Timeout", "Lambda.Unknown" ],
+                "IntervalSeconds": 3,
+                "MaxAttempts": 99,
+                "BackoffRate": 1.5
+              }
+            ],
+            "End": true
           }
-        },
-        "End":true
-     }
+        }
+      },
+      "End": true
     }
   }
+}

@@ -13,12 +13,24 @@ type Topic struct {
 	URL         string `json:"url"`
 }
 
-type GetStoriesFromEconomyResult struct {
-	Topics         []Topic
-	UntitledTopics []Topic
+type LandingPageMetadata struct {
+	Stories         []Topic `json:"stories"`
+	UntitledStories []Topic `json:"untitledstories"`
 }
 
-func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
+type StepFunctionInput struct {
+	Stories              []Topic `json:"stories"`
+	NewsSiteAlias        string  `json:"newsSiteAlias"`
+	LandingPageTimeStamp string  `json:"landingPageTimeStamp"`
+}
+
+type StepFunctionMapIterationInput struct {
+	Story                Topic  `json:"story"`
+	NewsSiteAlias        string `json:"newsSiteAlias"`
+	LandingPageTimeStamp string `json:"landingPageTimeStamp"`
+}
+
+func GetStoriesFromEconomy(body string) LandingPageMetadata {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err != nil {
@@ -35,13 +47,13 @@ func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
 	var emptyTitleURLs strings.Builder
 	doc.Find("a[href$=html]").Each(func(i int, anchor *goquery.Selection) {
 		topic := Topic{
-			Name:        strings.TrimSpace(anchor.Text()),
+			Name:        strings.ReplaceAll(strings.TrimSpace(anchor.Text()), "/", "-"),
 			Description: "",
 			URL:         strings.TrimSpace(anchor.AttrOr("href", "-")),
 		}
 		if topic.Name != "" {
 			topics = append(topics, topic)
-			GoTools.Logger("DEBUG", "Found an anchor ", topic.Name, topic.URL)
+			GoTools.Logger("VERBOSE", "Found an anchor ", topic.Name, topic.URL)
 		} else {
 			untitledTopics = append(untitledTopics, topic)
 			emptyTitleURLs.WriteString(topic.URL)
@@ -50,8 +62,8 @@ func GetStoriesFromEconomy(body string) GetStoriesFromEconomyResult {
 	})
 	GoTools.Logger("INFO", "Skipped due to empty title URLs:\n", emptyTitleURLs.String())
 
-	return GetStoriesFromEconomyResult{
-		Topics:         topics,
-		UntitledTopics: untitledTopics,
+	return LandingPageMetadata{
+		Stories:         topics,
+		UntitledStories: untitledTopics,
 	}
 }

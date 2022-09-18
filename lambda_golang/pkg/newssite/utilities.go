@@ -1,8 +1,11 @@
 package newssite
 
 import (
-	"encoding/json"
+	"io"
+	"net/http"
 	"strings"
+
+	"golang.org/x/net/html/charset"
 
 	"github.com/rivernews/GoTools"
 )
@@ -27,10 +30,25 @@ func GetNewsSite(envVar string) NewsSite {
 	}
 }
 
-func AsJson(v any) string {
-	jsonBytes, err := json.Marshal(v)
+func Fetch(url string) string {
+	resp, err := http.Get(url)
+	if err != nil {
+		// handle error
+		GoTools.Logger("ERROR", err.Error())
+	}
+	defer resp.Body.Close()
+
+	contentType := resp.Header.Get("Content-Type") // Optional, better guessing
+	GoTools.Logger("DEBUG", "ContentType is ", contentType)
+	utf8reader, err := charset.NewReader(resp.Body, contentType)
 	if err != nil {
 		GoTools.Logger("ERROR", err.Error())
 	}
-	return string(jsonBytes)
+
+	body, err := io.ReadAll(utf8reader)
+	if err != nil {
+		// handle error
+		GoTools.Logger("ERROR", err.Error())
+	}
+	return string(body)
 }
