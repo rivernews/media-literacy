@@ -34,7 +34,7 @@ module "stories_queue_consumer_lambda" {
   handler       = "stories"
   runtime     = "go1.x"
   source_path = [{
-    path = "${path.module}/../lambda_golang/"
+    path = "${var.repo_dir}/lambda_golang/"
     commands = ["${local.go_build_flags} go build ./cmd/stories", ":zip"]
     patterns = ["stories"]
   }]

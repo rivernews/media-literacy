@@ -18,3 +18,8 @@ variable environment_name {
   default = ""
   description = "Empty string for Production, otherwise the environment name e.g. dev, stage, etc, make sure to use lowercase (s3 bucket only allows lower)"
 }
+
+variable repo_dir {
+  type = string
+  description = "The absolute path of git repository path"
+}

@@ -10,7 +10,7 @@ module "lambda_layer" {
   runtime     = "python3.8"
   compatible_runtimes = ["python3.8"]
   source_path = [{
-    path = "${path.module}/../lambda/layer"
+    path = "${var.repo_dir}/lambda/layer"
     pip_requirements = true
     # Make sure the follow the Layer Structure
     # https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html#configuration-layers-path
@@ -67,7 +67,7 @@ module "scraper_lambda" {
   # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
   # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
   source_path = [{
-    path = "${path.module}/../lambda_golang/"
+    path = "${var.repo_dir}/lambda_golang/"
     commands = ["${local.go_build_flags} go build ./cmd/landing", ":zip"]
     patterns = ["landing"]
   }]

@@ -1,8 +1,9 @@
 set -e
 
-DEPLOY_DIR=$(git rev-parse --show-toplevel)/cloud_environments/${ENV:-production}
-GOLANG_SRC_DIR=$(git rev-parse --show-toplevel)/lambda_golang
-PYTHON_SRC_DIR=$(git rev-parse --show-toplevel)/lambda
+REPO_DIR=$(git rev-parse --show-toplevel)
+DEPLOY_DIR=${REPO_DIR}/cloud_environments/${ENV:-production}
+GOLANG_SRC_DIR=${REPO_DIR}/lambda_golang
+PYTHON_SRC_DIR=${REPO_DIR}/lambda
 
 set -o allexport
 . ${DEPLOY_DIR}/local.backend.credentials.tfvars
@@ -14,6 +15,7 @@ TF_VAR_project_alias=media-literacy
 TF_VAR_environment_name=${ENV:-}
 TF_VAR_slack_signing_secret=${slack_signing_secret}
 TF_VAR_slack_post_webhook_url=${slack_post_webhook_url}
+TF_VAR_repo_dir=${REPO_DIR}
 set +o allexport
 
 # below is just for testing golang build! The actual build command is in terraform lambda module `command` property
