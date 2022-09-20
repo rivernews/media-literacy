@@ -56,7 +56,7 @@ module "slack_command_lambda" {
   description   = "Lambda function for slack command for environment ${local.project_name}"
   handler       = "slack_command_controller.lambda_handler"
   runtime     = "python3.8"
-  source_path = "${path.module}/../lambda/src/slack_command_controller.py"
+  source_path = "${var.repo_dir}/lambda/src/slack_command_controller.py"
 
   layers = [
     module.lambda_layer.lambda_layer_arn

@@ -29,7 +29,7 @@ module "pipeline_queue_consumer_lambda" {
   description   = "Consumer lambda function for ${local.project_name} pipeline queue"
   handler       = "pipeline_queue_consumer.lambda_handler"
   runtime     = "python3.8"
-  source_path = "${path.module}/../lambda/src/pipeline_queue_consumer.py"
+  source_path = "${var.repo_dir}/lambda/src/pipeline_queue_consumer.py"
   publish = true
 
   layers = [

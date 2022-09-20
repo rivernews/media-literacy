@@ -36,7 +36,7 @@ module landing_parse_metadata_lambda {
   runtime       = "go1.x"
 
   source_path = [{
-    path = "${path.module}/../lambda_golang/"
+    path = "${var.repo_dir}/lambda_golang/"
     commands = ["${local.go_build_flags} go build ./cmd/landing_metadata", ":zip"]
     patterns = ["landing_metadata"]
   }]
@@ -101,7 +101,7 @@ module fetch_story_lambda {
   runtime       = "go1.x"
 
   source_path = [{
-    path = "${path.module}/../lambda_golang/"
+    path = "${var.repo_dir}/lambda_golang/"
     commands = ["${local.go_build_flags} go build ./cmd/story", ":zip"]
     patterns = ["story"]
   }]
