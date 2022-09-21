@@ -41,3 +41,48 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     Environment = "production"
   }
 }
+
+
+resource "aws_dynamodb_table" "media-table" {
+  name           = "Mediatable"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "uuid"
+  range_key      = "createdAt"
+
+  attribute {
+    name = "uuid"
+    type = "S"
+  }
+
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
+
+  attribute {
+    name = "isWaitingForMetadata"
+    type = "N"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  global_secondary_index {
+    name               = "metadataIndex"
+    hash_key           = "landing + isWaitingForMetadata"
+    range_key          = "createdAt"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["UserId"]
+  }
+
+  tags = {
+    Name        = "dynamodb-table-1"
+    Environment = "production"
+  }
+}
