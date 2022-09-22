@@ -61,9 +61,17 @@ resource "aws_dynamodb_table" "media-table" {
     type = "S"
   }
 
+  // other fields
+  // S3 key
+  // docType = {landing | story | landingMetadata | ...}
+  // events
+
   attribute {
-    name = "isWaitingForMetadata"
-    type = "N"
+    // pontentially sharable by landing AND story pages
+    // field `S3 key` will be able to provide newsSiteAlias and landing/story page info
+    // value can store doc type, actually
+    name = "isDocTypeWaitingForMetadata"
+    type = "S"
   }
 
   ttl {
@@ -72,13 +80,18 @@ resource "aws_dynamodb_table" "media-table" {
   }
 
   global_secondary_index {
+    // this index is to pull out all landing page that needs metadata generation
     name               = "metadataIndex"
-    hash_key           = "landing + isWaitingForMetadata"
-    range_key          = "createdAt"
+    // must only use equality operator for hash_key
+    hash_key           = "isDocTypeWaitingForMetadata"
+    // ordering does not matter
+    // so range_key need not to be datetime field; (actually its S3 key name already has datetime info)
+    // but if we are to specify a sort key field... landing/story distinguish might be good but...
+    range_key          = "? createdAt ?"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["UserId"]
+    non_key_attributes = ["s3Key"]
   }
 
   tags = {
