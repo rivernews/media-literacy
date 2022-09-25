@@ -1,7 +1,7 @@
 resource "aws_ssm_parameter" "media_table" {
   name  = "/app/media-literacy/table"
   type  = "String"
-  value = aws_dynamodb_table.media_table.arn
+  value = "${aws_dynamodb_table.media_table.arn},${aws_dynamodb_table.media_table.id}"
 }
 
 // https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table#attributes-reference

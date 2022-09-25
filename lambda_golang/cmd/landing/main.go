@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 
@@ -59,7 +58,7 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	// S3 archive
 	cloud.Archive(cloud.ArchiveArgs{
 		BodyText: bodyText,
-		Key:      fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, time.Now().Format(time.RFC3339)),
+		Key:      fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, newssite.Now()),
 	})
 
 	return LambdaResponse{

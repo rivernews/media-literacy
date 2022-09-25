@@ -32,6 +32,12 @@
           }
         }
       },
+      "Next": "Stories-Finalizer",
+      "End": false
+    },
+    "Stories-Finalizer": {
+      "Type":"Task",
+      "Resource": "${STORIES_FINALIZER_LAMBDA_ARN}",
       "End": true
     }
   }

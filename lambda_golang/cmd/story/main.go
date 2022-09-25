@@ -33,6 +33,10 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 	totalWait := rand.Intn(waitRange) + baseWait
 	time.Sleep(time.Duration(totalWait) * time.Second)
 
+	// TODO: add story to db, event add EVENT_STORY_REQUESTED
+
+	// TODO: assign isDocTypeWaitingForMetadata
+
 	responseBody, _, _ := GoTools.Fetch(GoTools.FetchOption{
 		URL: "https://checkip.amazonaws.com",
 		QueryParams: map[string]string{
@@ -48,6 +52,8 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 		BodyText: storyHtmlBodyText,
 		Key:      fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageTimeStamp, stepFunctionMapIterationInput.Story.Name),
 	})
+
+	// TODO: add story to db, event add EVENT_STORY_FETCHED
 
 	return LambdaResponse{
 		OK:      true,

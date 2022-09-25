@@ -20,6 +20,7 @@ import (
 
 	// local packages
 	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 func main() {
@@ -42,16 +43,24 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 		landingPageS3Key := record.S3.Object.URLDecodedKey
 		GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
 
-		// TODO: push into dynamoDB instead
-
-		cloud.DynamoDBPutItem(ctx, map[string]types.AttributeValue{
-			"s3Key":                       &types.AttributeValueMemberS{Value: "12346"},
-			"docType":                     &types.AttributeValueMemberS{Value: "John Doe"},
-			"events":                      &types.AttributeValueMemberS{Value: "john@doe.io"},
-			"isDocTypeWaitingForMetadata": &types.AttributeValueMemberS{Value: "TODO"},
-		})
+		// remember to configure permissions in tf
 
 		// TODO: let landing s3 trigger switch to point to this func
+
+		out := cloud.DynamoDBPutItem(ctx, map[string]any{
+			"s3Key":   landingPageS3Key,
+			"docType": string(newssite.DOCTYPE_LANDING),
+			"events": []newssite.MediaTableItemEvent{
+				{
+					EventName: newssite.EVENT_LANDING_PAGE_FETCHED,
+					Detail:    fmt.Sprintf("Landing page html stored in S3 and triggers event to store in media table"),
+					EventTime: newssite.Now(),
+				},
+			},
+			"isDocTypeWaitingForMetadata": &types.AttributeValueMemberS{Value: string(newssite.DOCTYPE_LANDING)},
+		})
+
+		GoTools.Logger("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
 
 		// landingPageHtmlText := cloud.Pull(landingPageS3Key)
 		// landingPageS3KeyTokens := strings.Split(landingPageS3Key, "/")

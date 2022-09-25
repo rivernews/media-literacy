@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html/charset"
 
@@ -51,4 +52,8 @@ func Fetch(url string) string {
 		GoTools.Logger("ERROR", err.Error())
 	}
 	return string(body)
+}
+
+func Now() string {
+	return time.Now().Format(time.RFC3339)
 }

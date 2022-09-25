@@ -2,9 +2,11 @@
 **/builds/**
 
 lambda_golang/landing
+lambda_golang/landing_s3_trigger
+lambda_golang/landing_metadata_cronjob
 lambda_golang/stories
-lambda_golang/landing_metadata
 lambda_golang/story
+lambda_golang/stories_finalizer
 venv
 
 # Binaries for programs and plugins
