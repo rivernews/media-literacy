@@ -70,6 +70,8 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 
 		GoTools.Logger("INFO", fmt.Sprintf("Sfn output ``` %s ```\n", GoTools.AsJson(sfnOutput)))
 
+		// TODO: add event "storiesFetchStart" on landing page entry in db
+
 		/*
 			storyChunk := message.Body
 			GoTools.Logger("INFO", fmt.Sprintf("Story consumer! story chunk: %s", storyChunk))
