@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	//"math"
 
@@ -17,9 +16,10 @@ import (
 	//"github.com/aws/aws-sdk-go-v2/config"
 	//"github.com/aws/aws-sdk-go-v2/service/sqs"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+
 	// local packages
 	"github.com/rivernews/media-literacy/pkg/cloud"
-	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
 func main() {
@@ -43,6 +43,13 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 		GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
 
 		// TODO: push into dynamoDB instead
+
+		cloud.DynamoDBPutItem(ctx, map[string]types.AttributeValue{
+			"s3Key":                       &types.AttributeValueMemberS{Value: "12346"},
+			"docType":                     &types.AttributeValueMemberS{Value: "John Doe"},
+			"events":                      &types.AttributeValueMemberS{Value: "john@doe.io"},
+			"isDocTypeWaitingForMetadata": &types.AttributeValueMemberS{Value: "TODO"},
+		})
 
 		// TODO: let landing s3 trigger switch to point to this func
 
