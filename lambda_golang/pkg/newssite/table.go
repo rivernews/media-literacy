@@ -3,8 +3,8 @@ package newssite
 type EventName string
 
 const (
-	// `landing`
-	EVENT_LANDING_PAGE_REQUESTED EventName = "LANDING_PAGE_REQUESTED" ✅ 📩
+	// `landing`  ✅ 📩
+	EVENT_LANDING_PAGE_REQUESTED EventName = "LANDING_PAGE_REQUESTED"
 	// +`landing_s3_trigger` (put in db) ✅
 	EVENT_LANDING_PAGE_FETCHED EventName = "LANDING_PAGE_FETCHED"
 	// @`landing_metadata` -> `landing_metadata_cronjob` (query db; store metadata) ✅ (cronjob trigger) ✅
@@ -29,4 +29,18 @@ type DocType string
 
 const (
 	DOCTYPE_LANDING DocType = "LANDING"
+	DOCTYPE_STORY   DocType = "STORY"
 )
+
+type TableIndex string
+
+const (
+	METADATA_INDEX TableIndex = "metadataIndex"
+)
+
+type MediaTableItem struct {
+	S3Key                       string                `json:"s3Key"`
+	DocType                     DocType               `json:"docType"`
+	Events                      []MediaTableItemEvent `json:"events"`
+	IsDocTypeWaitingForMetadata DocType               `json:"isDocTypeWaitingForMetadata,omitempty"`
+}

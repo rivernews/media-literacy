@@ -36,16 +36,12 @@ type LambdaResponse struct {
 }
 
 func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
-
-	// TODO: create a cronjob rule in tf
-	// TODO: point cronjob to this func
-
-	// TODO: change from s3Event to fetch from dynamoDB (query)
+	items := cloud.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
 
 	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
 
-	for _, record := range s3Event.Records {
-		landingPageS3Key := record.S3.Object.URLDecodedKey
+	for _, landingItem := range *items {
+		landingPageS3Key := landingItem.S3Key
 		GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
 
 		landingPageHtmlText := cloud.Pull(landingPageS3Key)
