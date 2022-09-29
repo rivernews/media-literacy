@@ -1,35 +1,31 @@
-module "stories_queue" {
-  source  = "terraform-aws-modules/sqs/aws"
-  version = ">= 2.0, < 3.0"
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = data.aws_s3_bucket.archive.id
 
-  # SQS queue attributes: https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_CreateQueue.html
-
-  # FIFO queue should append suffix .fifo
-  name = "${local.project_name}-stories-queue"
-
-  delay_seconds = 0
-
-  # so we can use per-message delay
-  fifo_queue = false
-
-  # FIFO queue only
-  # content_based_deduplication = true
-
-  visibility_timeout_seconds = 3600
-
-  # enable long polling
-  receive_wait_time_seconds = 10
-
-  tags = {
-    Project = local.project_name
+  lambda_function {
+    lambda_function_arn = module.landing_metadata_s3_trigger_lambda.lambda_function_arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "${local.newssite_economy_alias}/"
+    filter_suffix       = "/metadata.json"
   }
+
+  depends_on = [
+    aws_lambda_permission.allow_bucket_trigger_by_landing_metadata
+  ]
 }
 
-module "stories_queue_consumer_lambda" {
+resource "aws_lambda_permission" "allow_bucket_trigger_by_landing_metadata" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = module.landing_metadata_s3_trigger_lambda.lambda_function_arn
+  principal     = "s3.amazonaws.com"
+  source_arn    = data.aws_s3_bucket.archive.arn
+}
+
+module "landing_metadata_s3_trigger_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_function = true
-  function_name = "${local.project_name}-fetch-stories"
+  function_name = "${local.project_name}-stories-lambda"
   description   = "Fetch ${local.project_name} stories; triggered by metadata.json creation"
   handler       = "stories"
   runtime     = "go1.x"
@@ -62,30 +58,20 @@ module "stories_queue_consumer_lambda" {
 }
 EOF
 
-  # event source mapping for long polling
-  event_source_mapping = {
-    sqs = {
-      event_source_arn = module.stories_queue.this_sqs_queue_arn
-      batch_size = 1
-    }
-  }
-  allowed_triggers = {
-    sqs = {
-      principal  = "sqs.amazonaws.com"
-      source_arn = module.stories_queue.this_sqs_queue_arn
-    }
-  }
   attach_policy_statements = true
   policy_statements = {
-    pull_sqs = {
+    allow_db_put = {
       effect    = "Allow",
-      actions   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"],
-      resources = [module.stories_queue.this_sqs_queue_arn]
+      actions   = [
+        "dynamodb:UpdateItem",
+      ],
+      resources = [
+        local.media_table_arn,
+      ]
     }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
-        "s3:PutObject",
         "s3:GetObject"
       ],
       resources = [
@@ -107,8 +93,10 @@ EOF
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOGLEVEL = "DEBUG"
     ENV = local.environment
+    DEBUG = "true"
 
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+    DYNAMODB_TABLE_ID = local.media_table_id
     SFN_ARN = module.batch_stories_sfn.state_machine_arn
   }
 
