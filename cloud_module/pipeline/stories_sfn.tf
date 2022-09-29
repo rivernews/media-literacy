@@ -31,7 +31,7 @@ module batch_stories_sfn {
 module fetch_story_lambda {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
-  function_name = "${local.project_name}-fetch-story"
+  function_name = "${local.project_name}-story-lambda"
   description   = "Fetch and archive a story page"
   handler       = "story"
   runtime       = "go1.x"
@@ -110,7 +110,10 @@ module "stories_finalizer_lambda" {
         "dynamodb:Query",
         "dynamodb:UpdateItem",
       ],
-      resources = [local.media_table_arn]
+      resources = [
+        local.media_table_arn,
+        "${local.media_table_arn}/index/s3KeyIndex"
+      ]
     }
   }
 

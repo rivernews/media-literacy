@@ -83,7 +83,7 @@ resource "aws_cloudwatch_event_target" "landing_metadata_scheduler_event_target"
 module landing_metadata_cronjob_lambda {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
-  function_name = "${local.project_name}-batch-stories-fetch-parse"
+  function_name = "${local.project_name}-landing-metadata-cronjob-lambda"
   description   = "Query landing pages in db; compute & archive their metadata"
   handler       = "landing_metadata_cronjob"
   runtime       = "go1.x"
@@ -107,11 +107,15 @@ module landing_metadata_cronjob_lambda {
         "dynamodb:Query",
         "dynamodb:UpdateItem",
       ],
-      resources = [local.media_table_arn]
+      resources = [
+        local.media_table_arn,
+        "${local.media_table_arn}/index/metadataIndex"
+      ]
     }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
+        "s3:GetObject",
         "s3:PutObject",
       ],
       resources = [

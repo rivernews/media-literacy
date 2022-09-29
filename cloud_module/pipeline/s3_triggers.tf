@@ -25,7 +25,7 @@ module "landing_metadata_s3_trigger_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   create_function = true
-  function_name = "${local.project_name}-fetch-stories"
+  function_name = "${local.project_name}-stories-lambda"
   description   = "Fetch ${local.project_name} stories; triggered by metadata.json creation"
   handler       = "stories"
   runtime     = "go1.x"

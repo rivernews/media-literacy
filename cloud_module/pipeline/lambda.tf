@@ -59,7 +59,7 @@ module "step_function" {
 module "scraper_lambda" {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
-  function_name = "${local.project_name}-scraper-lambda"
+  function_name = "${local.project_name}-landing-lambda"
   description   = "Lambda function for scraping"
   handler       = "landing"
   runtime     = "go1.x"

@@ -35,10 +35,10 @@ type LambdaResponse struct {
 	Message string `json:"message:"`
 }
 
-func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
-	items := newssite.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
-
+func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (LambdaResponse, error) {
 	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
+
+	items := newssite.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
 
 	for _, landingItem := range *items {
 		landingPageS3Key := landingItem.S3Key
