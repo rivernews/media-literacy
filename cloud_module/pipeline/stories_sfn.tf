@@ -15,7 +15,7 @@ module batch_stories_sfn {
   service_integrations = {
     lambda = {
       lambda = [
-        module.fetch_story_lambda.lambda_function_arn
+        module.fetch_story_lambda.lambda_function_arn,
         module.stories_finalizer_lambda.lambda_function_arn
       ]
     }
@@ -31,7 +31,7 @@ module batch_stories_sfn {
 module fetch_story_lambda {
   source = "terraform-aws-modules/lambda/aws"
   create_function = true
-  function_name = "${local.project_name}-fetch-story"
+  function_name = "${local.project_name}-story-lambda"
   description   = "Fetch and archive a story page"
   handler       = "story"
   runtime       = "go1.x"
@@ -49,6 +49,15 @@ module fetch_story_lambda {
 
   attach_policy_statements = true
   policy_statements = {
+    allow_db_put = {
+      effect    = "Allow",
+      actions   = [
+        "dynamodb:PutItem",
+      ],
+      resources = [
+        local.media_table_arn,
+      ]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -77,6 +86,8 @@ module fetch_story_lambda {
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {
@@ -107,9 +118,13 @@ module "stories_finalizer_lambda" {
     allow_db_put = {
       effect    = "Allow",
       actions   = [
+        "dynamodb:Query",
         "dynamodb:UpdateItem",
       ],
-      resources = [media_table_arn]
+      resources = [
+        local.media_table_arn,
+        "${local.media_table_arn}/index/s3KeyIndex"
+      ]
     }
   }
 
@@ -117,7 +132,7 @@ module "stories_finalizer_lambda" {
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
-    DYNAMODB_TABLE_ID = media_table_id
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {

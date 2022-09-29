@@ -35,10 +35,10 @@ type LambdaResponse struct {
 	Message string `json:"message:"`
 }
 
-func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse, error) {
-	items := cloud.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
-
+func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (LambdaResponse, error) {
 	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
+
+	items := newssite.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
 
 	for _, landingItem := range *items {
 		landingPageS3Key := landingItem.S3Key
@@ -49,21 +49,26 @@ func HandleRequest(ctx context.Context, s3Event events.S3Event) (LambdaResponse,
 		metadataS3DirKeyTokens := landingPageS3KeyTokens[:len(landingPageS3KeyTokens)-1]
 		metadataS3Key := fmt.Sprintf("%s/metadata.json", strings.Join(metadataS3DirKeyTokens, "/"))
 
-		result := newssite.GetStoriesFromEconomy(landingPageHtmlText)
-		metadataJSONString := GoTools.AsJson(result)
+		landingPageMetadata := newssite.GetStoriesFromEconomy(landingPageHtmlText)
+		landingPageMetadata.LandingPageS3Key = landingPageS3Key
+		landingPageMetadata.LandingPageUuid = landingItem.Uuid
+		landingPageMetadata.LandingPageCreatedAt = landingItem.CreatedAt
+		metadataJSONString := GoTools.AsJson(landingPageMetadata)
 
 		cloud.Archive(cloud.ArchiveArgs{
 			BodyText:          metadataJSONString,
 			Key:               metadataS3Key,
 			FileTypeExtension: "json",
 		})
+		newssite.DynamoDBUpdateItemMarkAsMetadataComplete(
+			ctx,
+			landingItem.Uuid,
+			landingItem.CreatedAt,
+			newssite.GetEventLandingMetadataDone(metadataS3Key, landingPageS3Key),
+		)
 
 		bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 		GoTools.Logger("INFO", fmt.Sprintf("Saved landing page metadata to s3://%s/%s", bucket, metadataS3Key))
-
-		// TODO: update `isDocTypeWaitingForMetadata` on landing page entry in db
-
-		// (optional) TODO: add event "metadataGenFinish" on landing page entry in db
 	}
 
 	return LambdaResponse{

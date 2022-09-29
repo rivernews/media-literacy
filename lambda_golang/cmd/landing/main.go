@@ -10,6 +10,7 @@ import (
 	"github.com/rivernews/GoTools"
 
 	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/common"
 	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
@@ -29,7 +30,7 @@ type LambdaResponse struct {
 func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error) {
 	newsSite := newssite.GetNewsSite("NEWSSITE_ECONOMY")
 
-	bodyText := newssite.Fetch(newsSite.LandingURL)
+	bodyText := common.Fetch(newsSite.LandingURL)
 	GoTools.Logger("INFO", "In golang runtime now!\n\n```\n "+bodyText[:500]+"\n ...```\n End of message")
 
 	// scraper
@@ -56,10 +57,21 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 	GoTools.Logger("INFO", successMessage)
 
 	// S3 archive
+	landingPageS3Key := fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, common.Now())
 	cloud.Archive(cloud.ArchiveArgs{
 		BodyText: bodyText,
-		Key:      fmt.Sprintf("%s/daily-headlines/%s/landing.html", newsSite.Alias, newssite.Now()),
+		Key:      landingPageS3Key,
 	})
+	out := cloud.DynamoDBPutItem(ctx, newssite.MediaTableItem{
+		S3Key:   landingPageS3Key,
+		DocType: newssite.DOCTYPE_LANDING,
+		Events: []newssite.MediaTableItemEvent{
+			newssite.GetEventLandingPageFetched(newsSite.Alias, landingPageS3Key),
+			newssite.GetEventLandingMetadataRequested(landingPageS3Key),
+		},
+		IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
+	})
+	GoTools.Logger("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
 
 	return LambdaResponse{
 		OK:      true,

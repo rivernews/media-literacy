@@ -22,7 +22,6 @@ set +o allexport
 if (
     cd $GOLANG_SRC_DIR && \
     go build ./cmd/landing && \
-    go build ./cmd/landing_s3_trigger && \
     go build ./cmd/landing_metadata_cronjob && \
     go build ./cmd/stories && \
     go build ./cmd/story && \
