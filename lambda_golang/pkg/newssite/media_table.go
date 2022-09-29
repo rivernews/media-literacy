@@ -100,9 +100,9 @@ func GetEventLandingStoriesFetched(landingPageS3Key string) MediaTableItemEvent 
 }
 
 type MediaTableItemEvent struct {
-	EventName EventName `json:"eventName"`
-	Detail    string    `json:"detail"`
-	EventTime string    `json:"eventTime"`
+	EventName EventName `dynamodbav:"eventName" json:"eventName"`
+	Detail    string    `dynamodbav:"detail" json:"detail"`
+	EventTime string    `dynamodbav:"eventTime" json:"eventTime"`
 }
 
 type DocType string
@@ -120,12 +120,12 @@ const (
 )
 
 type MediaTableItem struct {
-	Uuid                        string                `json:"uuid,omitempty"`
-	CreatedAt                   string                `json:"createdAt,omitempty"`
-	S3Key                       string                `json:"s3Key"`
-	DocType                     DocType               `json:"docType"`
-	Events                      []MediaTableItemEvent `json:"events"`
-	IsDocTypeWaitingForMetadata DocType               `json:"isDocTypeWaitingForMetadata,omitempty"`
+	Uuid                        string                `dynamodbav:"uuid,omitempty" json:"uuid,omitempty"`
+	CreatedAt                   string                `dynamodbav:"createdAt,omitempty" json:"createdAt,omitempty"`
+	S3Key                       string                `dynamodbav:"s3Key" json:"s3Key"`
+	DocType                     DocType               `dynamodbav:"docType" json:"docType"`
+	Events                      []MediaTableItemEvent `dynamodbav:"events" json:"events"`
+	IsDocTypeWaitingForMetadata DocType               `dynamodbav:"isDocTypeWaitingForMetadata,omitempty" json:"isDocTypeWaitingForMetadata,omitempty"`
 }
 
 func DynamoDBQueryByS3Key(ctx context.Context, s3Key string) *[]MediaTableItem {
