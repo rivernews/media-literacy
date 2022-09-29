@@ -14,23 +14,29 @@ type Topic struct {
 }
 
 type LandingPageMetadata struct {
-	Stories         []Topic `json:"stories"`
-	UntitledStories []Topic `json:"untitledstories"`
+	LandingPageS3Key     string  `json:"landingPageS3Key"`
+	LandingPageUuid      string  `json:"landingPageUuid"`
+	LandingPageCreatedAt string  `json:"landingPageCreatedAt"`
+	Stories              []Topic `json:"stories"`
+	UntitledStories      []Topic `json:"untitledstories"`
 }
 
 type StepFunctionInput struct {
 	Stories              []Topic `json:"stories"`
 	NewsSiteAlias        string  `json:"newsSiteAlias"`
+	LandingPageUuid      string  `json:"landingPageUuid"`
+	LandingPageS3Key     string  `json:"landingPageS3Key"`
 	LandingPageTimeStamp string  `json:"landingPageTimeStamp"`
 }
 
 type StepFunctionMapIterationInput struct {
 	Story                Topic  `json:"story"`
 	NewsSiteAlias        string `json:"newsSiteAlias"`
+	LandingPageUuid      string `json:"landingPageUuid"`
 	LandingPageTimeStamp string `json:"landingPageTimeStamp"`
 }
 
-func GetStoriesFromEconomy(body string) LandingPageMetadata {
+func GetStoriesFromEconomy(body string) *LandingPageMetadata {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err != nil {
@@ -62,7 +68,7 @@ func GetStoriesFromEconomy(body string) LandingPageMetadata {
 	})
 	GoTools.Logger("INFO", "Skipped due to empty title URLs:\n", emptyTitleURLs.String())
 
-	return LandingPageMetadata{
+	return &LandingPageMetadata{
 		Stories:         topics,
 		UntitledStories: untitledTopics,
 	}

@@ -12,6 +12,7 @@
       "Parameters": {
         "story.$": "$$.Map.Item.Value",
         "newsSiteAlias.$": "$.newsSiteAlias",
+        "landingPageUuid.$": "$.landingPageUuid",
         "landingPageTimeStamp.$": "$.landingPageTimeStamp"
       },
       "Iterator": {
@@ -32,6 +33,11 @@
           }
         }
       },
+      "Next": "Stories-Finalizer"
+    },
+    "Stories-Finalizer": {
+      "Type":"Task",
+      "Resource": "${STORIES_FINALIZER_LAMBDA_ARN}",
       "End": true
     }
   }

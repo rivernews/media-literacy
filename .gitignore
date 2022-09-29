@@ -1,10 +1,11 @@
 **credential**
 **/builds/**
 
-lambda_golang/landing
-lambda_golang/stories
-lambda_golang/landing_metadata
-lambda_golang/story
+lambda_golang/*
+!lambda_golang/go.mod
+!lambda_golang/go.sum
+!lambda_golang/*/
+!lambda_golang/*/**
 venv
 
 # Binaries for programs and plugins
