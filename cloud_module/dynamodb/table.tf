@@ -6,7 +6,7 @@ resource "aws_ssm_parameter" "media_table" {
 
 // https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table#attributes-reference
 resource "aws_dynamodb_table" "media_table" {
-  name           = "Mediatable"
+  name           = "${title(replace("${var.project_alias}_${var.environment_name}", "-", "_"))}"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
@@ -23,8 +23,12 @@ resource "aws_dynamodb_table" "media_table" {
     type = "S"
   }
 
+  attribute {
+    name = "s3Key"
+    type = "S"
+  }
+
   // other fields
-  // S3 key
   // docType = {landing | story | landingMetadata | ...}
   // events
 
@@ -56,6 +60,15 @@ resource "aws_dynamodb_table" "media_table" {
     read_capacity      = 10
     projection_type    = "INCLUDE"
     non_key_attributes = ["s3Key"]
+  }
+
+  global_secondary_index {
+    name               = "s3KeyIndex"
+    hash_key           = "s3Key"
+    range_key          = "createdAt"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "KEYS_ONLY"
   }
 
   tags = {

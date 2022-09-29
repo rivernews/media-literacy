@@ -12,6 +12,7 @@ import (
 
 	"github.com/rivernews/GoTools"
 	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/common"
 	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
@@ -33,10 +34,6 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 	totalWait := rand.Intn(waitRange) + baseWait
 	time.Sleep(time.Duration(totalWait) * time.Second)
 
-	// TODO: add story to db, event add EVENT_STORY_REQUESTED
-
-	// TODO: assign isDocTypeWaitingForMetadata
-
 	responseBody, _, _ := GoTools.Fetch(GoTools.FetchOption{
 		URL: "https://checkip.amazonaws.com",
 		QueryParams: map[string]string{
@@ -46,14 +43,27 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 	})
 
 	GoTools.Logger("INFO", fmt.Sprintf("IP=`%s` waited %d - %s", bytes.TrimSpace(responseBody), totalWait, stepFunctionMapIterationInput.Story.Name))
-
-	storyHtmlBodyText := newssite.Fetch(stepFunctionMapIterationInput.Story.URL)
+	storyS3Key := fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageTimeStamp, stepFunctionMapIterationInput.Story.Name)
+	storyHtmlBodyText := common.Fetch(stepFunctionMapIterationInput.Story.URL)
 	cloud.Archive(cloud.ArchiveArgs{
 		BodyText: storyHtmlBodyText,
-		Key:      fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageTimeStamp, stepFunctionMapIterationInput.Story.Name),
+		Key:      storyS3Key,
 	})
 
-	// TODO: add story to db, event add EVENT_STORY_FETCHED
+	cloud.DynamoDBPutItem(
+		ctx,
+		newssite.MediaTableItem{
+			S3Key:   storyS3Key,
+			DocType: newssite.DOCTYPE_STORY,
+			Events: []newssite.MediaTableItemEvent{
+				newssite.GetEventStoryFetched(
+					stepFunctionMapIterationInput.Story.Name,
+					stepFunctionMapIterationInput.Story.URL,
+				),
+			},
+			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
+		},
+	)
 
 	return LambdaResponse{
 		OK:      true,

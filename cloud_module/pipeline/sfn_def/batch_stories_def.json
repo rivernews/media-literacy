@@ -12,6 +12,7 @@
       "Parameters": {
         "story.$": "$$.Map.Item.Value",
         "newsSiteAlias.$": "$.newsSiteAlias",
+        "landingPageUuid.$": "$.landingPageUuid",
         "landingPageTimeStamp.$": "$.landingPageTimeStamp"
       },
       "Iterator": {
@@ -32,8 +33,7 @@
           }
         }
       },
-      "Next": "Stories-Finalizer",
-      "End": false
+      "Next": "Stories-Finalizer"
     },
     "Stories-Finalizer": {
       "Type":"Task",

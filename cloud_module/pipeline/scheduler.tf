@@ -107,7 +107,7 @@ module landing_metadata_cronjob_lambda {
         "dynamodb:Query",
         "dynamodb:UpdateItem",
       ],
-      resources = [media_table_arn]
+      resources = [local.media_table_arn]
     }
     s3_archive_bucket = {
       effect    = "Allow",
@@ -136,7 +136,7 @@ module landing_metadata_cronjob_lambda {
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
-    DYNAMODB_TABLE_ID = media_table_id
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {

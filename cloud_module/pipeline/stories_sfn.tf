@@ -15,7 +15,7 @@ module batch_stories_sfn {
   service_integrations = {
     lambda = {
       lambda = [
-        module.fetch_story_lambda.lambda_function_arn
+        module.fetch_story_lambda.lambda_function_arn,
         module.stories_finalizer_lambda.lambda_function_arn
       ]
     }
@@ -107,9 +107,10 @@ module "stories_finalizer_lambda" {
     allow_db_put = {
       effect    = "Allow",
       actions   = [
+        "dynamodb:Query",
         "dynamodb:UpdateItem",
       ],
-      resources = [media_table_arn]
+      resources = [local.media_table_arn]
     }
   }
 
@@ -117,7 +118,7 @@ module "stories_finalizer_lambda" {
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
-    DYNAMODB_TABLE_ID = media_table_id
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {

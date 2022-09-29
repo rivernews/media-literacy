@@ -82,6 +82,13 @@ module "scraper_lambda" {
 
   attach_policy_statements = true
   policy_statements = {
+    allow_db_query = {
+      effect    = "Allow",
+      actions   = [
+        "dynamodb:PutItem"
+      ],
+      resources = [local.media_table_arn]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -98,6 +105,7 @@ module "scraper_lambda" {
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
 
     NEWSSITE_ECONOMY = data.aws_ssm_parameter.newssite_economy.value
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {

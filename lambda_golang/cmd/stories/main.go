@@ -33,17 +33,17 @@ var sfnClient *sfn.Client
 // SQS event
 // refer to https://github.com/aws/aws-lambda-go/blob/v1.26.0/events/README_SQS.md
 func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse, error) {
-	GoTools.Logger("INFO", "Fetch stories lambda launched ... triggered by metadata.json creation.")
+	GoTools.Logger("INFO", "Fetch stories lambda launched ... triggered by metadata.json creation, ready to batch fetch storeis in Sfn")
 
 	for _, record := range S3Event.Records {
 
 		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", GoTools.AsJson(record)))
-
-		metadataS3KeyTokens := strings.Split(record.S3.Object.URLDecodedKey, "/")
+		metadataS3Key := record.S3.Object.URLDecodedKey
+		metadataS3KeyTokens := strings.Split(metadataS3Key, "/")
 		newsSiteAlias := metadataS3KeyTokens[0]
 		landingPageTimeStamp := metadataS3KeyTokens[len(metadataS3KeyTokens)-2]
 
-		metadataJSONString := cloud.Pull(record.S3.Object.URLDecodedKey)
+		metadataJSONString := cloud.Pull(metadataS3Key)
 		var metadata newssite.LandingPageMetadata
 		GoTools.FromJson([]byte(metadataJSONString), &metadata)
 
@@ -53,6 +53,8 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 		sfnInput := GoTools.AsJson(&newssite.StepFunctionInput{
 			Stories:              metadata.Stories,
 			NewsSiteAlias:        newsSiteAlias,
+			LandingPageUuid:      metadata.LandingPageUuid,
+			LandingPageS3Key:     metadata.LandingPageS3Key,
 			LandingPageTimeStamp: landingPageTimeStamp,
 		})
 		executionName := strings.ReplaceAll(fmt.Sprintf("%s--%s", landingPageTimeStamp, time.Now().Format(time.RFC3339)), ":", "")
@@ -67,6 +69,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 				StateMachineArn: aws.String(sfnArn),
 			},
 		)
+		newssite.DynamoDBUpdateItemAddEvent(ctx, metadata.LandingPageUuid, newssite.GetEventLandingStoriesRequested(metadataS3Key))
 
 		GoTools.Logger("INFO", fmt.Sprintf("Sfn output ``` %s ```\n", GoTools.AsJson(sfnOutput)))
 

@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/rivernews/GoTools"
-	"github.com/rivernews/media-literacy/pkg/newssite"
+	"github.com/rivernews/media-literacy/pkg/common"
 
 	"github.com/google/uuid"
 )
@@ -26,7 +26,7 @@ func SharedDynamoDBClient() *dynamodb.Client {
 	return dynamoDBClient
 }
 
-func getTableName() string {
+func GetTableName() string {
 	tableID := GoTools.GetEnvVarHelper("DYNAMODB_TABLE_ID")
 	if tableID == "" {
 		GoTools.Logger("ERROR", "DYNAMODB_TABLE_ID is required please set this env var")
@@ -41,15 +41,15 @@ func DynamoDBPutItem(ctx context.Context, item any) *dynamodb.PutItemOutput {
 	}
 
 	if _, exist := dynamoDBItem["uuid"]; !exist {
-		dynamoDBItem["uuid"] = uuid.New().String()
+		dynamoDBItem["uuid"] = &types.AttributeValueMemberS{Value: uuid.New().String()}
 	}
 
 	if _, exist := dynamoDBItem["createdAt"]; !exist {
-		dynamoDBItem["createdAt"] = newssite.Now()
+		dynamoDBItem["createdAt"] = &types.AttributeValueMemberS{Value: common.Now()}
 	}
 
-	out, err := dynamoDBClient.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(getTableName()),
+	out, err := SharedDynamoDBClient().PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(GetTableName()),
 		Item:      dynamoDBItem,
 	})
 
@@ -58,30 +58,4 @@ func DynamoDBPutItem(ctx context.Context, item any) *dynamodb.PutItemOutput {
 	}
 
 	return out
-}
-
-func DynamoDBQueryWaitingMetadata(ctx context.Context, docType newssite.DocType) *[]newssite.MediaTableItem {
-	out, err := dynamoDBClient.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(getTableName()),
-		IndexName:              aws.String(string(newssite.METADATA_INDEX)),
-		KeyConditionExpression: aws.String("isDocTypeWaitingForMetadata = :isDocTypeWaitingForMetadata and createdAt < :createdAt"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":isDocTypeWaitingForMetadata": &types.AttributeValueMemberS{Value: string(docType)},
-			":createdAt":                   &types.AttributeValueMemberS{Value: newssite.Now()},
-		},
-	})
-	if err != nil {
-		GoTools.Logger("ERROR", err.Error())
-	}
-
-	var results []newssite.MediaTableItem
-	attributevalue.UnmarshalListOfMaps(out.Items, &results)
-
-	return &results
-}
-
-func DynamoDBUpdateItem() {
-	// TODO: remove attribute
-
-	// TODO: add event to `events`
 }
