@@ -22,9 +22,10 @@ set +o allexport
 if (
     cd $GOLANG_SRC_DIR && \
     go build ./cmd/landing && \
-    go build ./cmd/landing_metadata && \
+    go build ./cmd/landing_metadata_cronjob && \
     go build ./cmd/stories && \
     go build ./cmd/story && \
+    go build ./cmd/stories_finalizer && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then
     cd $DEPLOY_DIR
@@ -37,7 +38,7 @@ if (
     # https://github.com/terraform-aws-modules/terraform-aws-step-functions/issues/20
     # terraform "$@" \
     #     -target=module.main.module.scraper_lambda \
-    #     -target=module.main.module.landing_parse_metadata_lambda
+    #     -target=module.main.module.landing_metadata_cronjob_lambda
 
     terraform "$@"
 else

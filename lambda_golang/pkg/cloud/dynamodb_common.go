@@ -5,9 +5,11 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/rivernews/GoTools"
+	"github.com/rivernews/media-literacy/pkg/common"
 
 	"github.com/google/uuid"
 )
@@ -24,23 +26,31 @@ func SharedDynamoDBClient() *dynamodb.Client {
 	return dynamoDBClient
 }
 
-func DynamoDBPutItem(ctx context.Context, item map[string]types.AttributeValue) *dynamodb.PutItemOutput {
-	tableID := GoTools.GetEnvVarHelper("MEDIA_TABLE_ID")
+func GetTableName() string {
+	tableID := GoTools.GetEnvVarHelper("DYNAMODB_TABLE_ID")
 	if tableID == "" {
-		GoTools.Logger("ERROR", "MEDIA_TABLE_ID is required please set this env var")
+		GoTools.Logger("ERROR", "DYNAMODB_TABLE_ID is required please set this env var")
+	}
+	return tableID
+}
+
+func DynamoDBPutItem(ctx context.Context, item any) *dynamodb.PutItemOutput {
+	dynamoDBItem, err := attributevalue.MarshalMap(item)
+	if err != nil {
+		GoTools.Logger("ERROR", err.Error())
 	}
 
-	if _, exist := item["uuid"]; !exist {
-		item["uuid"] = uuid.New().String()
+	if _, exist := dynamoDBItem["uuid"]; !exist {
+		dynamoDBItem["uuid"] = &types.AttributeValueMemberS{Value: uuid.New().String()}
 	}
 
-	if _, exist := item["createdAt"]; !exist {
-		// TODO
+	if _, exist := dynamoDBItem["createdAt"]; !exist {
+		dynamoDBItem["createdAt"] = &types.AttributeValueMemberS{Value: common.Now()}
 	}
 
-	out, err := dynamoDBClient.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(tableID),
-		Item:      item,
+	out, err := SharedDynamoDBClient().PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(GetTableName()),
+		Item:      dynamoDBItem,
 	})
 
 	if err != nil {
