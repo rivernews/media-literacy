@@ -52,6 +52,7 @@ func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (La
 		landingPageMetadata := newssite.GetStoriesFromEconomy(landingPageHtmlText)
 		landingPageMetadata.LandingPageS3Key = landingPageS3Key
 		landingPageMetadata.LandingPageUuid = landingItem.Uuid
+		landingPageMetadata.LandingPageCreatedAt = landingItem.CreatedAt
 		metadataJSONString := GoTools.AsJson(landingPageMetadata)
 
 		cloud.Archive(cloud.ArchiveArgs{
@@ -62,6 +63,7 @@ func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (La
 		newssite.DynamoDBUpdateItemMarkAsMetadataComplete(
 			ctx,
 			landingItem.Uuid,
+			landingItem.CreatedAt,
 			newssite.GetEventLandingMetadataDone(metadataS3Key, landingPageS3Key),
 		)
 

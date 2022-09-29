@@ -60,6 +60,15 @@ EOF
 
   attach_policy_statements = true
   policy_statements = {
+    allow_db_put = {
+      effect    = "Allow",
+      actions   = [
+        "dynamodb:UpdateItem",
+      ],
+      resources = [
+        local.media_table_arn,
+      ]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -84,8 +93,10 @@ EOF
     SLACK_WEBHOOK_URL = var.slack_post_webhook_url
     LOGLEVEL = "DEBUG"
     ENV = local.environment
+    DEBUG = "true"
 
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+    DYNAMODB_TABLE_ID = local.media_table_id
     SFN_ARN = module.batch_stories_sfn.state_machine_arn
   }
 

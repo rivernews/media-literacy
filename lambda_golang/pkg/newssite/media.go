@@ -14,10 +14,11 @@ type Topic struct {
 }
 
 type LandingPageMetadata struct {
-	LandingPageS3Key string  `json:"landingPageS3Key"`
-	LandingPageUuid  string  `json:"landingPageUuid"`
-	Stories          []Topic `json:"stories"`
-	UntitledStories  []Topic `json:"untitledstories"`
+	LandingPageS3Key     string  `json:"landingPageS3Key"`
+	LandingPageUuid      string  `json:"landingPageUuid"`
+	LandingPageCreatedAt string  `json:"landingPageCreatedAt"`
+	Stories              []Topic `json:"stories"`
+	UntitledStories      []Topic `json:"untitledstories"`
 }
 
 type StepFunctionInput struct {

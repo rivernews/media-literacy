@@ -50,8 +50,14 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 		GoTools.Logger("INFO", fmt.Sprintf("Test first story: %d:%d", len(metadata.Stories), len(metadata.UntitledStories)))
 
 		// fire step function, input = {stories: [{}, {}, {}...], newsSiteAlias:"", landingPageTimeStamp:""}
+		var processStories []newssite.Topic
+		if GoTools.Debug {
+			processStories = metadata.Stories[:2]
+		} else {
+			processStories = metadata.Stories
+		}
 		sfnInput := GoTools.AsJson(&newssite.StepFunctionInput{
-			Stories:              metadata.Stories,
+			Stories:              processStories,
 			NewsSiteAlias:        newsSiteAlias,
 			LandingPageUuid:      metadata.LandingPageUuid,
 			LandingPageS3Key:     metadata.LandingPageS3Key,
@@ -69,7 +75,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 				StateMachineArn: aws.String(sfnArn),
 			},
 		)
-		newssite.DynamoDBUpdateItemAddEvent(ctx, metadata.LandingPageUuid, newssite.GetEventLandingStoriesRequested(metadataS3Key))
+		newssite.DynamoDBUpdateItemAddEvent(ctx, metadata.LandingPageUuid, metadata.LandingPageCreatedAt, newssite.GetEventLandingStoriesRequested(metadataS3Key, len(processStories)))
 
 		GoTools.Logger("INFO", fmt.Sprintf("Sfn output ``` %s ```\n", GoTools.AsJson(sfnOutput)))
 

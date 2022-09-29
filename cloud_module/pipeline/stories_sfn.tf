@@ -49,6 +49,15 @@ module fetch_story_lambda {
 
   attach_policy_statements = true
   policy_statements = {
+    allow_db_put = {
+      effect    = "Allow",
+      actions   = [
+        "dynamodb:PutItem",
+      ],
+      resources = [
+        local.media_table_arn,
+      ]
+    }
     s3_archive_bucket = {
       effect    = "Allow",
       actions   = [
@@ -77,6 +86,8 @@ module fetch_story_lambda {
     LOG_LEVEL = "DEBUG"
     DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
+
+    DYNAMODB_TABLE_ID = local.media_table_id
   }
 
   tags = {

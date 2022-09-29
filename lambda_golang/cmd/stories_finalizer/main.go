@@ -23,17 +23,19 @@ type LambdaResponse struct {
 func HandleRequest(ctx context.Context, stepFunctionInput newssite.StepFunctionInput) (LambdaResponse, error) {
 	GoTools.Logger("INFO", "Stories finalizer launched")
 
-	items := newssite.DynamoDBQueryByS3Key(ctx, stepFunctionInput.LandingPageS3Key)
+	result := newssite.DynamoDBQueryByS3Key(ctx, stepFunctionInput.LandingPageS3Key)
 
-	if len(*items) != 1 {
+	if len(*result) != 1 {
 		GoTools.Logger("ERROR", fmt.Sprintf(
 			"Stories finalizer expect exactly one landing page `%s`, but query resulted in `%d` items",
 			stepFunctionInput.LandingPageS3Key,
-			len(*items),
+			len(*result),
 		))
 	}
 
-	newssite.DynamoDBUpdateItemAddEvent(ctx, stepFunctionInput.LandingPageUuid, newssite.GetEventLandingStoriesFetched(stepFunctionInput.LandingPageS3Key))
+	landingPageItem := (*result)[0]
+
+	newssite.DynamoDBUpdateItemAddEvent(ctx, landingPageItem.Uuid, landingPageItem.CreatedAt, newssite.GetEventLandingStoriesFetched(stepFunctionInput.LandingPageS3Key))
 
 	return LambdaResponse{
 		OK:      true,

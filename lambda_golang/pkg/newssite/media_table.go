@@ -65,10 +65,10 @@ func GetEventLandingMetadataDone(metadataS3Key string, landingPageS3Key string) 
 	}
 }
 
-func GetEventLandingStoriesRequested(metadataS3Key string) MediaTableItemEvent {
+func GetEventLandingStoriesRequested(metadataS3Key string, storiesCount int) MediaTableItemEvent {
 	return MediaTableItemEvent{
 		EventName: EVENT_LANDING_STORIES_REQUESTED,
-		Detail:    fmt.Sprintf("Stories requested for landing page based on metadata %s", metadataS3Key),
+		Detail:    fmt.Sprintf("Stories(%d) requested for landing page based on metadata %s", storiesCount, metadataS3Key),
 		EventTime: common.Now(),
 	}
 }
@@ -170,7 +170,7 @@ func DynamoDBQueryWaitingMetadata(ctx context.Context, docType DocType) *[]Media
 	return &results
 }
 
-func DynamoDBUpdateItem(ctx context.Context, uuid string, event MediaTableItemEvent, isMarkMetadataComplete bool) *dynamodb.UpdateItemOutput {
+func DynamoDBUpdateItem(ctx context.Context, uuid string, createdAt string, event MediaTableItemEvent, isMarkMetadataComplete bool) *dynamodb.UpdateItemOutput {
 	dynamoDBItemEvent, err := attributevalue.MarshalMap(event)
 	if err != nil {
 		GoTools.Logger("ERROR", err.Error())
@@ -178,13 +178,18 @@ func DynamoDBUpdateItem(ctx context.Context, uuid string, event MediaTableItemEv
 	updateItemInput := dynamodb.UpdateItemInput{
 		TableName: aws.String(cloud.GetTableName()),
 		Key: map[string]types.AttributeValue{
-			"uuid": &types.AttributeValueMemberS{Value: uuid},
+			"uuid":      &types.AttributeValueMemberS{Value: uuid},
+			"createdAt": &types.AttributeValueMemberS{Value: createdAt},
 		},
 		// manual
 		// https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html#Expressions.UpdateExpressions.ADD
 		UpdateExpression: aws.String(`SET events = list_append(events, :e)`),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":e": &types.AttributeValueMemberM{Value: dynamoDBItemEvent},
+			":e": &types.AttributeValueMemberL{
+				Value: []types.AttributeValue{
+					&types.AttributeValueMemberM{Value: dynamoDBItemEvent},
+				},
+			},
 		},
 	}
 	if isMarkMetadataComplete {
@@ -200,10 +205,10 @@ func DynamoDBUpdateItem(ctx context.Context, uuid string, event MediaTableItemEv
 	return out
 }
 
-func DynamoDBUpdateItemAddEvent(ctx context.Context, uuid string, event MediaTableItemEvent) *dynamodb.UpdateItemOutput {
-	return DynamoDBUpdateItem(ctx, uuid, event, false)
+func DynamoDBUpdateItemAddEvent(ctx context.Context, uuid string, createdAt string, event MediaTableItemEvent) *dynamodb.UpdateItemOutput {
+	return DynamoDBUpdateItem(ctx, uuid, createdAt, event, false)
 }
 
-func DynamoDBUpdateItemMarkAsMetadataComplete(ctx context.Context, uuid string, event MediaTableItemEvent) *dynamodb.UpdateItemOutput {
-	return DynamoDBUpdateItem(ctx, uuid, event, true)
+func DynamoDBUpdateItemMarkAsMetadataComplete(ctx context.Context, uuid string, createdAt string, event MediaTableItemEvent) *dynamodb.UpdateItemOutput {
+	return DynamoDBUpdateItem(ctx, uuid, createdAt, event, true)
 }

@@ -61,7 +61,7 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 					stepFunctionMapIterationInput.Story.URL,
 				),
 			},
-			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
+			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_STORY,
 		},
 	)
 
