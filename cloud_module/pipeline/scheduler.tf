@@ -81,23 +81,15 @@ resource "aws_cloudwatch_event_target" "landing_metadata_scheduler_event_target"
 }
 
 module landing_metadata_cronjob_lambda {
-  source = "terraform-aws-modules/lambda/aws"
-  create_function = true
-  function_name = "${local.project_name}-landing-metadata-cronjob-lambda"
-  description   = "Query landing pages in db; compute & archive their metadata"
-  handler       = "landing_metadata_cronjob"
-  runtime       = "go1.x"
+  source = "../media_lambda"
+  environment_name = var.environment_name
+  project_alias = var.project_alias
+  slack_post_webhook_url = var.slack_post_webhook_url
+  repo_dir = var.repo_dir
 
-  source_path = [{
-    path = "${var.repo_dir}/lambda_golang/"
-    commands = ["${local.go_build_flags} go build ./cmd/landing_metadata_cronjob", ":zip"]
-    patterns = ["landing_metadata_cronjob"]
-  }]
-
-  timeout = 900
-  cloudwatch_logs_retention_in_days = 7
-
-  publish = true
+  description = "Query landing pages in db; compute & archive their metadata"
+  go_handler = "landing_metadata_cronjob"
+  debug = true
 
   attach_policy_statements = true
   policy_statements = {
@@ -136,14 +128,7 @@ module landing_metadata_cronjob_lambda {
   }
 
   environment_variables = {
-    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
-    LOG_LEVEL = "DEBUG"
-    DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
     DYNAMODB_TABLE_ID = local.media_table_id
-  }
-
-  tags = {
-    Project = local.project_name
   }
 }

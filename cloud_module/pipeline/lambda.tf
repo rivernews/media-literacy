@@ -56,29 +56,16 @@ module "step_function" {
   }
 }
 
-module "scraper_lambda" {
-  source = "terraform-aws-modules/lambda/aws"
-  create_function = true
-  function_name = "${local.project_name}-landing-lambda"
-  description   = "Lambda function for scraping"
-  handler       = "landing"
-  runtime     = "go1.x"
+module scraper_lambda {
+  source = "../media_lambda"
+  environment_name = var.environment_name
+  project_alias = var.project_alias
+  slack_post_webhook_url = var.slack_post_webhook_url
+  repo_dir = var.repo_dir
 
-  # Based on tf https://github.com/terraform-aws-modules/terraform-aws-lambda/blob/master/examples/build-package/main.tf#L111
-  # Based on golang https://github.com/snsinfu/terraform-lambda-example/blob/master/Makefile#L23
-  source_path = [{
-    path = "${var.repo_dir}/lambda_golang/"
-    commands = ["${local.go_build_flags} go build ./cmd/landing", ":zip"]
-    patterns = ["landing"]
-  }]
-
-  timeout = 900
-  cloudwatch_logs_retention_in_days = 7
-
-  publish = true
-  allowed_triggers = {
-    # allow sfn to call this func - set from sfn since the sf module provides integration there already
-  }
+  description = "Fetch landing page"
+  go_handler = "landing"
+  debug = true
 
   attach_policy_statements = true
   policy_statements = {
@@ -99,17 +86,9 @@ module "scraper_lambda" {
   }
 
   environment_variables = {
-    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
-    LOG_LEVEL = "DEBUG"
-    DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
-
     NEWSSITE_ECONOMY = data.aws_ssm_parameter.newssite_economy.value
     DYNAMODB_TABLE_ID = local.media_table_id
-  }
-
-  tags = {
-    Project = local.project_name
   }
 }
 

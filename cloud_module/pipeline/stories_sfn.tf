@@ -29,23 +29,15 @@ module batch_stories_sfn {
 }
 
 module fetch_story_lambda {
-  source = "terraform-aws-modules/lambda/aws"
-  create_function = true
-  function_name = "${local.project_name}-story-lambda"
-  description   = "Fetch and archive a story page"
-  handler       = "story"
-  runtime       = "go1.x"
+  source = "../media_lambda"
+  environment_name = var.environment_name
+  project_alias = var.project_alias
+  slack_post_webhook_url = var.slack_post_webhook_url
+  repo_dir = var.repo_dir
 
-  source_path = [{
-    path = "${var.repo_dir}/lambda_golang/"
-    commands = ["${local.go_build_flags} go build ./cmd/story", ":zip"]
-    patterns = ["story"]
-  }]
-
-  timeout = 900
-  cloudwatch_logs_retention_in_days = 7
-
-  publish = true
+  description = "Fetch and archive a story page"
+  go_handler = "story"
+  debug = true
 
   attach_policy_statements = true
   policy_statements = {
@@ -82,36 +74,21 @@ module fetch_story_lambda {
   }
 
   environment_variables = {
-    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
-    LOG_LEVEL = "DEBUG"
-    DEBUG = "true"
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
-
     DYNAMODB_TABLE_ID = local.media_table_id
-  }
-
-  tags = {
-    Project = local.project_name
   }
 }
 
-module "stories_finalizer_lambda" {
-  source = "terraform-aws-modules/lambda/aws"
-  create_function = true
-  function_name = "${local.project_name}-stories-finalizer-lambda"
-  description   = "Finalizer as last sfn step after all stories fetched"
-  handler       = "stories_finalizer"
-  runtime     = "go1.x"
+module stories_finalizer_lambda {
+  source = "../media_lambda"
+  environment_name = var.environment_name
+  project_alias = var.project_alias
+  slack_post_webhook_url = var.slack_post_webhook_url
+  repo_dir = var.repo_dir
 
-  source_path = [{
-    path = "${var.repo_dir}/lambda_golang/"
-    commands = ["${local.go_build_flags} go build ./cmd/stories_finalizer", ":zip"]
-    patterns = ["stories_finalizer"]
-  }]
-
-  timeout = 900
-  cloudwatch_logs_retention_in_days = 7
-  publish = true
+  go_handler = "stories_finalizer"
+  description = "Finalizer as last sfn step after all stories fetched"
+  debug = true
 
   attach_policy_statements = true
   policy_statements = {
@@ -129,13 +106,6 @@ module "stories_finalizer_lambda" {
   }
 
   environment_variables = {
-    SLACK_WEBHOOK_URL = var.slack_post_webhook_url
-    LOG_LEVEL = "DEBUG"
-    DEBUG = "true"
     DYNAMODB_TABLE_ID = local.media_table_id
-  }
-
-  tags = {
-    Project = local.project_name
   }
 }
