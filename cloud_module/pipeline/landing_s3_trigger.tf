@@ -15,7 +15,7 @@ module landing_s3_trigger_lambda {
 
   description = "Triggered by landing creation; put landing to db"
   go_handler = "landing_s3_trigger"
-  debug = true
+  debug = false
 
   attach_policy_statements = true
   policy_statements = {

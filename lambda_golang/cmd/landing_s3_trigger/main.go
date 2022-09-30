@@ -29,13 +29,21 @@ type LambdaResponse struct {
 
 var sfnClient *sfn.Client
 
+func logHelper(logLevel string, logMessage string) {
+	if GoTools.Debug {
+		GoTools.Logger(logLevel, logMessage)
+	} else {
+		GoTools.SimpleLogger(logLevel, logMessage)
+	}
+}
+
 // SQS event
 // refer to https://github.com/aws/aws-lambda-go/blob/v1.26.0/events/README_SQS.md
 func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse, error) {
-	GoTools.Logger("INFO", "Landing page S3 trigger launched")
+	logHelper("INFO", "Landing page S3 trigger launched")
 
 	for _, record := range S3Event.Records {
-		GoTools.Logger("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", GoTools.AsJson(record)))
+		logHelper("INFO", fmt.Sprintf("S3 event ``` %s ```\n ", GoTools.AsJson(record)))
 		landingPageS3Key := record.S3.Object.URLDecodedKey
 		landingPageS3KeyTokens := strings.Split(landingPageS3Key, "/")
 		newsSiteAlias := landingPageS3KeyTokens[0]
@@ -51,7 +59,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 			},
 			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
 		})
-		GoTools.Logger("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
+		logHelper("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
 	}
 
 	return LambdaResponse{
