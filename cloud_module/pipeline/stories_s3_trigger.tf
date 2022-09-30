@@ -15,7 +15,7 @@ module stories_s3_trigger_lambda {
 
   description = "Invoke Sfn to fetch all stories; triggered by metadata.json creation"
   go_handler = "stories_s3_trigger"
-  debug = true
+  debug = false
 
   attach_policy_json = true
   policy_json        = <<EOF

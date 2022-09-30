@@ -30,7 +30,7 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 	GoTools.Logger("INFO", "Fetch single story launched")
 
 	baseWait := 4
-	waitRange := 60 * 1
+	waitRange := 60 * 13
 	totalWait := rand.Intn(waitRange) + baseWait
 	time.Sleep(time.Duration(totalWait) * time.Second)
 

@@ -63,7 +63,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 			LandingPageS3Key:     metadata.LandingPageS3Key,
 			LandingPageCreatedAt: landingPageCreatedAt,
 		})
-		executionName := strings.ReplaceAll(fmt.Sprintf("%s--%s", landingPageCreatedAt, time.Now().Format(time.RFC3339)), ":", "")
+		executionName := strings.ReplaceAll(fmt.Sprintf("LandingHeadline%s--Sfn%s", landingPageCreatedAt, time.Now().Format(time.RFC3339)), ":", "")
 		sfnArn := GoTools.GetEnvVarHelper("SFN_ARN")
 		GoTools.Logger("INFO", fmt.Sprintf("execName: `%s`\nSfnArn: `%s`\nInput:``` %s ```\n", executionName, sfnArn, sfnInput))
 

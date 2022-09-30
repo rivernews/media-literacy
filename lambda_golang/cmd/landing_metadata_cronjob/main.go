@@ -69,6 +69,7 @@ func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (La
 
 		bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 		GoTools.Logger("INFO", fmt.Sprintf("Saved landing page metadata to s3://%s/%s", bucket, metadataS3Key))
+		break
 	}
 
 	return LambdaResponse{
