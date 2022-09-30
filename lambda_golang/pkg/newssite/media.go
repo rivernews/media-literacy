@@ -26,14 +26,14 @@ type StepFunctionInput struct {
 	NewsSiteAlias        string  `json:"newsSiteAlias"`
 	LandingPageUuid      string  `json:"landingPageUuid"`
 	LandingPageS3Key     string  `json:"landingPageS3Key"`
-	LandingPageTimeStamp string  `json:"landingPageTimeStamp"`
+	LandingPageCreatedAt string  `json:"landingPageCreatedAt"`
 }
 
 type StepFunctionMapIterationInput struct {
 	Story                Topic  `json:"story"`
 	NewsSiteAlias        string `json:"newsSiteAlias"`
 	LandingPageUuid      string `json:"landingPageUuid"`
-	LandingPageTimeStamp string `json:"landingPageTimeStamp"`
+	LandingPageCreatedAt string `json:"landingPageCreatedAt"`
 }
 
 func GetStoriesFromEconomy(body string) *LandingPageMetadata {

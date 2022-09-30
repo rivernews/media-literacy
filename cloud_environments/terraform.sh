@@ -23,7 +23,7 @@ if (
     cd $GOLANG_SRC_DIR && \
     go build ./cmd/landing && \
     go build ./cmd/landing_metadata_cronjob && \
-    go build ./cmd/stories && \
+    go build ./cmd/stories_s3_trigger && \
     go build ./cmd/story && \
     go build ./cmd/stories_finalizer && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src

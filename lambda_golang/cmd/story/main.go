@@ -43,7 +43,7 @@ func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.S
 	})
 
 	GoTools.Logger("INFO", fmt.Sprintf("IP=`%s` waited %d - %s", bytes.TrimSpace(responseBody), totalWait, stepFunctionMapIterationInput.Story.Name))
-	storyS3Key := fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageTimeStamp, stepFunctionMapIterationInput.Story.Name)
+	storyS3Key := fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageCreatedAt, stepFunctionMapIterationInput.Story.Name)
 	storyHtmlBodyText := common.Fetch(stepFunctionMapIterationInput.Story.URL)
 	cloud.Archive(cloud.ArchiveArgs{
 		BodyText: storyHtmlBodyText,

@@ -13,7 +13,7 @@
         "story.$": "$$.Map.Item.Value",
         "newsSiteAlias.$": "$.newsSiteAlias",
         "landingPageUuid.$": "$.landingPageUuid",
-        "landingPageTimeStamp.$": "$.landingPageTimeStamp"
+        "landingPageCreatedAt.$": "$.landingPageCreatedAt"
       },
       "Iterator": {
         "StartAt": "Fetch",
