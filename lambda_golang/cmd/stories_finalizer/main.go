@@ -35,7 +35,17 @@ func HandleRequest(ctx context.Context, stepFunctionInput newssite.StepFunctionI
 
 	landingPageItem := (*result)[0]
 
-	newssite.DynamoDBUpdateItemAddEvent(ctx, landingPageItem.Uuid, landingPageItem.CreatedAt, newssite.GetEventLandingStoriesFetched(stepFunctionInput.LandingPageS3Key))
+	newssite.DynamoDBUpdateItemAddEvent(ctx,
+		landingPageItem.Uuid,
+		landingPageItem.CreatedAt,
+		newssite.GetEventLandingStoriesFetched(
+			stepFunctionInput.LandingPageS3Key,
+			len(stepFunctionInput.Stories),
+			len(stepFunctionInput.StoriesResults),
+		),
+	)
+
+	GoTools.Logger("INFO", fmt.Sprintf("All stories fetched `(%d/%d)`", len(stepFunctionInput.StoriesResults), len(stepFunctionInput.Stories)))
 
 	return LambdaResponse{
 		OK:      true,

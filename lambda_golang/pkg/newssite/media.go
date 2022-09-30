@@ -23,6 +23,7 @@ type LandingPageMetadata struct {
 
 type StepFunctionInput struct {
 	Stories              []Topic `json:"stories"`
+	StoriesResults       []Topic `json:"storiesResults"`
 	NewsSiteAlias        string  `json:"newsSiteAlias"`
 	LandingPageUuid      string  `json:"landingPageUuid"`
 	LandingPageS3Key     string  `json:"landingPageS3Key"`

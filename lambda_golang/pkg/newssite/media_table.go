@@ -91,10 +91,10 @@ func GetEventStoryFetched(storyTitle string, storyURL string) MediaTableItemEven
 	}
 }
 
-func GetEventLandingStoriesFetched(landingPageS3Key string) MediaTableItemEvent {
+func GetEventLandingStoriesFetched(landingPageS3Key string, targetStoriesCount int, successStoriesCount int) MediaTableItemEvent {
 	return MediaTableItemEvent{
 		EventName: EVENT_LANDING_STORIES_FETCHED,
-		Detail:    fmt.Sprintf("All stories fetched for landing page %s", landingPageS3Key),
+		Detail:    fmt.Sprintf("All stories(%d/%d) fetched for landing page %s", successStoriesCount, targetStoriesCount, landingPageS3Key),
 		EventTime: common.Now(),
 	}
 }
