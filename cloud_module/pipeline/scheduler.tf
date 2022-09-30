@@ -68,7 +68,7 @@ resource "aws_cloudwatch_event_rule" "landing_metadata_scheduler" {
   name                = "${local.project_name}-schedule-start-metadata-for-landing"
   # schedule experssion
   # https://docs.aws.amazon.com/eventbridge/latest/userguide/scheduled-events.html
-  schedule_expression = "rate(1 hours)"
+  schedule_expression = "rate(25 minutes)"
   description         = "Every hour to give courtesy to the website"
 }
 

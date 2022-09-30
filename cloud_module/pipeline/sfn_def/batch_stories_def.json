@@ -6,7 +6,7 @@
       "Type": "Map",
       "InputPath": "$",
       "ItemsPath": "$.stories",
-      "MaxConcurrency": 28,
+      "MaxConcurrency": 200,
       "ResultPath": "$.stories",
       "Comment": "`Parameters` replaces `InputPath`, see https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-map-state.html ",
       "Parameters": {
