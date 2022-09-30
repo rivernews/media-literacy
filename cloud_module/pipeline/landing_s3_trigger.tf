@@ -35,4 +35,8 @@ module landing_s3_trigger_lambda {
   description = "Triggered by landing creation; put landing to db"
   go_handler = "landing_s3_trigger"
   debug = true
+
+  environment_variables = {
+    DYNAMODB_TABLE_ID = local.media_table_id
+  }
 }
