@@ -21,11 +21,11 @@ set +o allexport
 # below is just for testing golang build! The actual build command is in terraform lambda module `command` property
 if (
     cd $GOLANG_SRC_DIR && \
-    go build ./cmd/landing && \
-    go build ./cmd/landing_metadata_cronjob && \
-    go build ./cmd/stories_s3_trigger && \
-    go build ./cmd/story && \
-    go build ./cmd/stories_finalizer && \
+    go build -o ./test_builds/ ./cmd/landing && \
+    go build -o ./test_builds/ ./cmd/landing_metadata_cronjob && \
+    go build -o ./test_builds/ ./cmd/stories_s3_trigger && \
+    go build -o ./test_builds/ ./cmd/story && \
+    go build -o ./test_builds/ ./cmd/stories_finalizer && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then
     cd $DEPLOY_DIR

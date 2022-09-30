@@ -1,11 +1,8 @@
 **credential**
 **/builds/**
+lambda_golang/build_zips
+lambda_golang/test_builds
 
-lambda_golang/*
-!lambda_golang/go.mod
-!lambda_golang/go.sum
-!lambda_golang/*/
-!lambda_golang/*/**
 venv
 
 # Binaries for programs and plugins
