@@ -4,8 +4,8 @@ module batch_stories_sfn {
   name = "${local.project_name}-batch-stories-sfn"
 
   definition = templatefile("${path.module}/sfn_def/batch_stories_def.json", {
-    FETCH_STORY_LAMBDA_ARN = "${module.fetch_story_lambda.lambda_function_arn}/${module.fetch_story_lambda.lambda_function_version}"
-    STORIES_FINALIZER_LAMBDA_ARN = "${module.stories_finalizer_lambda.lambda_function_arn}/${module.stories_finalizer_lambda.lambda_function_version}"
+    FETCH_STORY_LAMBDA_ARN = "${module.fetch_story_lambda.lambda_function_qualified_arn}"
+    STORIES_FINALIZER_LAMBDA_ARN = "${module.stories_finalizer_lambda.lambda_function_qualified_arn}"
   })
 
   # allow step function to invoke other service
@@ -15,8 +15,9 @@ module batch_stories_sfn {
   service_integrations = {
     lambda = {
       lambda = [
-        module.fetch_story_lambda.lambda_function_arn,
-        module.stories_finalizer_lambda.lambda_function_arn
+        # enforce lambda version; remember to use qualified arn (arn that includes version) for these lambda used in Sfn
+        "${module.fetch_story_lambda.lambda_function_arn}:*",
+        "${module.stories_finalizer_lambda.lambda_function_arn}:*"
       ]
     }
   }
