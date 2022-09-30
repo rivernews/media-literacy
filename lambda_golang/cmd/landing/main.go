@@ -62,19 +62,9 @@ func HandleRequest(ctx context.Context, name LambdaEvent) (LambdaResponse, error
 		BodyText: bodyText,
 		Key:      landingPageS3Key,
 	})
-	out := cloud.DynamoDBPutItem(ctx, newssite.MediaTableItem{
-		S3Key:   landingPageS3Key,
-		DocType: newssite.DOCTYPE_LANDING,
-		Events: []newssite.MediaTableItemEvent{
-			newssite.GetEventLandingPageFetched(newsSite.Alias, landingPageS3Key),
-			newssite.GetEventLandingMetadataRequested(landingPageS3Key),
-		},
-		IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
-	})
-	GoTools.Logger("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
 
 	return LambdaResponse{
 		OK:      true,
-		Message: "Slack command submitted successfully",
+		Message: "OK",
 	}, nil
 }

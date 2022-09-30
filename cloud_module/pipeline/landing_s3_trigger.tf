@@ -36,6 +36,17 @@ module landing_s3_trigger_lambda {
   go_handler = "landing_s3_trigger"
   debug = true
 
+  attach_policy_statements = true
+  policy_statements = {
+    allow_db_query = {
+      effect    = "Allow",
+      actions   = [
+        "dynamodb:PutItem"
+      ],
+      resources = [local.media_table_arn]
+    }
+  }
+
   environment_variables = {
     DYNAMODB_TABLE_ID = local.media_table_id
   }
