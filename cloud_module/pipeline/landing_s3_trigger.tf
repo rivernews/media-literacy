@@ -5,8 +5,9 @@ resource "aws_s3_bucket_notification" "bucket_notification_landing_s3_trigger" {
     lambda_function_arn = module.landing_s3_trigger_lambda.lambda_function_arn
     // https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html
     events              = [
-      "s3:ObjectCreated:Put",
-      "s3:ObjectCreated:CompleteMultipartUpload"
+      # "s3:ObjectCreated:Put",
+      # "s3:ObjectCreated:CompleteMultipartUpload",
+      "s3:ObjectCreated:*"
     ]
     filter_prefix       = "${local.newssite_economy_alias}/"
     filter_suffix       = "/landing.html"
