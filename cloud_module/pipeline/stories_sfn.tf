@@ -4,8 +4,8 @@ module batch_stories_sfn {
   name = "${local.project_name}-batch-stories-sfn"
 
   definition = templatefile("${path.module}/sfn_def/batch_stories_def.json", {
-    FETCH_STORY_LAMBDA_ARN = module.fetch_story_lambda.lambda_function_arn
-    STORIES_FINALIZER_LAMBDA_ARN = module.stories_finalizer_lambda.lambda_function_arn
+    FETCH_STORY_LAMBDA_ARN = "${module.fetch_story_lambda.lambda_function_arn}/${module.fetch_story_lambda.lambda_function_version}"
+    STORIES_FINALIZER_LAMBDA_ARN = "${module.stories_finalizer_lambda.lambda_function_arn}/${module.stories_finalizer_lambda.lambda_function_version}"
   })
 
   # allow step function to invoke other service
