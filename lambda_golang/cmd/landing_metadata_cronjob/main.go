@@ -36,7 +36,7 @@ type LambdaResponse struct {
 }
 
 func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (LambdaResponse, error) {
-	GoTools.Logger("INFO", "Landing page metadata.json generator launched")
+	GoTools.Logger("INFO", "Cronjob for landing page computing metadata.json launched")
 
 	items := newssite.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
 
