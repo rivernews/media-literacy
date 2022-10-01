@@ -38,7 +38,7 @@ module fetch_story_lambda {
 
   description = "Fetch and archive a story page"
   go_handler = "story"
-  debug = true
+  debug = false
 
   attach_policy_statements = true
   policy_statements = {

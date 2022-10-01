@@ -67,7 +67,7 @@ resource "aws_cloudwatch_event_rule" "landing_metadata_scheduler" {
   # schedule experssion
   # https://docs.aws.amazon.com/eventbridge/latest/userguide/scheduled-events.html
   # Sfn duration: 18m
-  schedule_expression = "rate(40 minutes)"
+  schedule_expression = "rate(45 minutes)"
   description         = "Every hour to give courtesy to the website"
 }
 
@@ -135,5 +135,6 @@ module landing_metadata_cronjob_lambda {
   environment_variables = {
     S3_ARCHIVE_BUCKET = data.aws_s3_bucket.archive.id
     DYNAMODB_TABLE_ID = local.media_table_id
+    MAX_PROCESS_LANDING_COUNT = 3
   }
 }

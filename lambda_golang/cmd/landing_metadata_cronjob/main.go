@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	//"math"
@@ -40,6 +41,12 @@ func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (La
 
 	items := newssite.DynamoDBQueryWaitingMetadata(ctx, newssite.DOCTYPE_LANDING)
 
+	targetProcessLandingPageCount, err := strconv.Atoi(GoTools.GetEnvVarHelper("MAX_PROCESS_LANDING_COUNT"))
+	if err != nil {
+		GoTools.Logger("ERROR", err.Error())
+	}
+
+	processedCount := 0
 	for _, landingItem := range *items {
 		landingPageS3Key := landingItem.S3Key
 		GoTools.Logger("INFO", fmt.Sprintf("Captured landing page at %s", landingPageS3Key))
@@ -69,7 +76,11 @@ func HandleRequest(ctx context.Context, cronjobEvent events.CloudWatchEvent) (La
 
 		bucket := GoTools.GetEnvVarHelper("S3_ARCHIVE_BUCKET")
 		GoTools.Logger("INFO", fmt.Sprintf("Saved landing page metadata to s3://%s/%s", bucket, metadataS3Key))
-		break
+
+		processedCount += 1
+		if processedCount >= targetProcessLandingPageCount {
+			break
+		}
 	}
 
 	return LambdaResponse{
