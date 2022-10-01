@@ -59,7 +59,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 			},
 			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_LANDING,
 		})
-		logHelper("DEBUG", fmt.Sprintf("```%s```\n", GoTools.AsJson(out)))
+		logHelper("INFO", fmt.Sprintf("DynamoDBPutItem:```%s```\n", GoTools.AsJson(out)))
 	}
 
 	return LambdaResponse{
