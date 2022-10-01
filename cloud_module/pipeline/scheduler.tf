@@ -67,23 +67,23 @@ resource "aws_cloudwatch_event_rule" "landing_metadata_scheduler" {
   # schedule experssion
   # https://docs.aws.amazon.com/eventbridge/latest/userguide/scheduled-events.html
   # Sfn duration: 18m
-  schedule_expression = "rate(45 minutes)"
+  schedule_expression = "rate(28 minutes)"
   description         = "Every hour to give courtesy to the website"
 }
 
-# resource "aws_cloudwatch_event_target" "landing_metadata_scheduler_event_target" {
-#   target_id = "${local.project_name}-landing-metadata"
-#   rule      = aws_cloudwatch_event_rule.landing_metadata_scheduler.name
-#   arn       = module.landing_metadata_cronjob_lambda.lambda_function_arn
-# }
+resource "aws_cloudwatch_event_target" "landing_metadata_scheduler_event_target" {
+  target_id = "${local.project_name}-landing-metadata"
+  rule      = aws_cloudwatch_event_rule.landing_metadata_scheduler.name
+  arn       = module.landing_metadata_cronjob_lambda.lambda_function_arn
+}
 
-# resource "aws_lambda_permission" "allow_rule_invoke_landing_metadata_cronjob" {
-#     statement_id = "AllowLandingMetadataExecutionFromCronjob"
-#     action = "lambda:InvokeFunction"
-#     function_name = module.landing_metadata_cronjob_lambda.lambda_function_arn
-#     principal = "events.amazonaws.com"
-#     source_arn = aws_cloudwatch_event_rule.landing_metadata_scheduler.arn
-# }
+resource "aws_lambda_permission" "allow_rule_invoke_landing_metadata_cronjob" {
+    statement_id = "AllowLandingMetadataExecutionFromCronjob"
+    action = "lambda:InvokeFunction"
+    function_name = module.landing_metadata_cronjob_lambda.lambda_function_arn
+    principal = "events.amazonaws.com"
+    source_arn = aws_cloudwatch_event_rule.landing_metadata_scheduler.arn
+}
 
 module landing_metadata_cronjob_lambda {
   source = "../media_lambda"
