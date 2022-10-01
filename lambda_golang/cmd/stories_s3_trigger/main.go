@@ -47,7 +47,7 @@ func HandleRequest(ctx context.Context, S3Event events.S3Event) (LambdaResponse,
 		var metadata newssite.LandingPageMetadata
 		GoTools.FromJson([]byte(metadataJSONString), &metadata)
 
-		GoTools.Logger("INFO", fmt.Sprintf("Test first story: %d:%d", len(metadata.Stories), len(metadata.UntitledStories)))
+		GoTools.Logger("INFO", fmt.Sprintf("Titled stories %d; untitled stories %d", len(metadata.Stories), len(metadata.UntitledStories)))
 
 		// fire step function, input = {stories: [{}, {}, {}...], newsSiteAlias:"", landingPageCreatedAt:""}
 		var processStories []newssite.Topic
