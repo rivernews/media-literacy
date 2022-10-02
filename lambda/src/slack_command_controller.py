@@ -38,7 +38,7 @@ def lambda_handler(request: APIGatewayRequest, context):
         # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/sqs.html#sending-messages
         queue = sqs.get_queue_by_name(QueueName=PIPELINE_QUEUE_NAME)
         res = queue.send_message(MessageBody=str(request.body), MessageGroupId=f'{PIPELINE_QUEUE_NAME}')
-
+    '''
     elif command.startswith(SlackCommandMantra.FETCH_LANDING_STORIES):
         text = request.body.get('text', '')
         landing_html_key = text[0] if text and isinstance(text, list) else text
@@ -53,6 +53,7 @@ def lambda_handler(request: APIGatewayRequest, context):
             })
         )
         loop.run_until_complete(SlackService.send(f'received landing page key: `{landing_html_key}`'))
+    '''
 
     loop.run_until_complete(SlackService.send(f'You sent a slack command. Processed response: {res}'))
 

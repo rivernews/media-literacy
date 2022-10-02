@@ -1,52 +1,72 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-lambda-go/events"
 
 	"context"
-	"github.com/rivernews/GoTools"
-	"fmt"
 
-	"time"
+	"github.com/rivernews/GoTools"
+	"github.com/rivernews/media-literacy/pkg/cloud"
+	"github.com/rivernews/media-literacy/pkg/common"
+	"github.com/rivernews/media-literacy/pkg/newssite"
 )
 
-
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	lambda.Start(HandleRequest)
 }
 
 type LambdaResponse struct {
-	OK bool `json:"OK:"`
+	OK      bool   `json:"OK:"`
 	Message string `json:"message:"`
 }
 
-// SQS event
-// refer to https://github.com/aws/aws-lambda-go/blob/v1.26.0/events/README_SQS.md
-func HandleRequest(ctx context.Context, event events.SQSEvent) (LambdaResponse, error) {
-	for _, message := range event.Records {
-		storyChunkId := message.Body
-		GoTools.Logger("INFO", fmt.Sprintf("Story consumer! story chunk: %s", storyChunkId))
+func HandleRequest(ctx context.Context, stepFunctionMapIterationInput newssite.StepFunctionMapIterationInput) (LambdaResponse, error) {
+	GoTools.Logger("INFO", "Fetch single story launched")
 
-		// TODO: fetch and archive for the chunk of storyURLs
+	baseWait := 4
+	waitRange := 60 * 13
+	totalWait := rand.Intn(waitRange) + baseWait
+	time.Sleep(time.Duration(totalWait) * time.Second)
 
-		for _, storyURL := range []string{ "http://story-00.com","http://story-01.com", } {
-			// TODO: randomized interval
-			time.Sleep(5 * time.Second)
+	responseBody, _, _ := GoTools.Fetch(GoTools.FetchOption{
+		URL: "https://checkip.amazonaws.com",
+		QueryParams: map[string]string{
+			"format": "json",
+		},
+		Method: "GET",
+	})
 
-			_, resMessage, err := GoTools.Fetch(GoTools.FetchOption{
-				Method: "GET",
-				URL: "https://ipv4bot.whatismyipaddress.com",
-			})
-			if err != nil {
-				GoTools.Logger("ERROR", err.Error())
-			}
-			GoTools.Logger("INFO", fmt.Sprintf("%s-%s ip: %s", storyChunkId, storyURL, resMessage))
-		}
-	}
+	GoTools.Logger("INFO", fmt.Sprintf("IP=`%s` waited %d - %s", bytes.TrimSpace(responseBody), totalWait, stepFunctionMapIterationInput.Story.Name))
+	storyS3Key := fmt.Sprintf("%s/stories/%s-%s/story.html", stepFunctionMapIterationInput.NewsSiteAlias, stepFunctionMapIterationInput.LandingPageCreatedAt, stepFunctionMapIterationInput.Story.Name)
+	storyHtmlBodyText := common.Fetch(stepFunctionMapIterationInput.Story.URL)
+	cloud.Archive(cloud.ArchiveArgs{
+		BodyText: storyHtmlBodyText,
+		Key:      storyS3Key,
+	})
+
+	cloud.DynamoDBPutItem(
+		ctx,
+		newssite.MediaTableItem{
+			S3Key:   storyS3Key,
+			DocType: newssite.DOCTYPE_STORY,
+			Events: []newssite.MediaTableItemEvent{
+				newssite.GetEventStoryFetched(
+					stepFunctionMapIterationInput.Story.Name,
+					stepFunctionMapIterationInput.Story.URL,
+				),
+			},
+			IsDocTypeWaitingForMetadata: newssite.DOCTYPE_STORY,
+		},
+	)
 
 	return LambdaResponse{
-		OK: true,
+		OK:      true,
 		Message: "Story consumer fetch parse ok",
 	}, nil
 }

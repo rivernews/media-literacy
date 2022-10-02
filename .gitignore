@@ -1,9 +1,8 @@
 **credential**
 **/builds/**
+lambda_golang/build_zips
+lambda_golang/test_builds
 
-lambda_golang/landing
-lambda_golang/story
-lambda_golang/stories
 venv
 
 # Binaries for programs and plugins
