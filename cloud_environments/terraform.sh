@@ -1,8 +1,9 @@
 set -e
 
-DEPLOY_DIR=$(git rev-parse --show-toplevel)/cloud_environments/${ENV:-production}
-GOLANG_SRC_DIR=$(git rev-parse --show-toplevel)/lambda_golang
-PYTHON_SRC_DIR=$(git rev-parse --show-toplevel)/lambda
+REPO_DIR=$(git rev-parse --show-toplevel)
+DEPLOY_DIR=${REPO_DIR}/cloud_environments/${ENV:-production}
+GOLANG_SRC_DIR=${REPO_DIR}/lambda_golang
+PYTHON_SRC_DIR=${REPO_DIR}/lambda
 
 set -o allexport
 . ${DEPLOY_DIR}/local.backend.credentials.tfvars
@@ -14,14 +15,17 @@ TF_VAR_project_alias=media-literacy
 TF_VAR_environment_name=${ENV:-}
 TF_VAR_slack_signing_secret=${slack_signing_secret}
 TF_VAR_slack_post_webhook_url=${slack_post_webhook_url}
+TF_VAR_repo_dir=${REPO_DIR}
 set +o allexport
 
-
+# below is just for testing golang build! The actual build command is in terraform lambda module `command` property
 if (
     cd $GOLANG_SRC_DIR && \
-    go build ./cmd/landing && \
-    go build ./cmd/stories && \
-    go build ./cmd/story && \
+    go build -o ./test_builds/ ./cmd/landing && \
+    go build -o ./test_builds/ ./cmd/landing_metadata_cronjob && \
+    go build -o ./test_builds/ ./cmd/stories_s3_trigger && \
+    go build -o ./test_builds/ ./cmd/story && \
+    go build -o ./test_builds/ ./cmd/stories_finalizer && \
     cd $PYTHON_SRC_DIR && python -m compileall layer src
 ); then
     cd $DEPLOY_DIR
@@ -34,7 +38,7 @@ if (
     # https://github.com/terraform-aws-modules/terraform-aws-step-functions/issues/20
     # terraform "$@" \
     #     -target=module.main.module.scraper_lambda \
-    #     -target=module.main.module.batch_stories_fetch_parse_lambda
+    #     -target=module.main.module.landing_metadata_cronjob_lambda
 
     terraform "$@"
 else

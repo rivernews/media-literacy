@@ -1,0 +1,44 @@
+{
+  "Comment": "Batch processing stories for a landing page",
+  "StartAt": "Fetch-All",
+  "States": {
+    "Fetch-All": {
+      "Type": "Map",
+      "InputPath": "$",
+      "ItemsPath": "$.stories",
+      "MaxConcurrency": 200,
+      "ResultPath": "$.storiesResults",
+      "Comment": "`Parameters` replaces `InputPath`, see https://docs.aws.amazon.com/step-functions/latest/dg/amazon-states-language-map-state.html ",
+      "Parameters": {
+        "story.$": "$$.Map.Item.Value",
+        "newsSiteAlias.$": "$.newsSiteAlias",
+        "landingPageUuid.$": "$.landingPageUuid",
+        "landingPageCreatedAt.$": "$.landingPageCreatedAt"
+      },
+      "Iterator": {
+        "StartAt": "Fetch",
+        "States": {
+          "Fetch": {
+            "Type": "Task",
+            "Resource": "${FETCH_STORY_LAMBDA_ARN}",
+            "Retry" : [
+              {
+                "ErrorEquals": [ "States.Timeout", "Lambda.Unknown" ],
+                "IntervalSeconds": 3,
+                "MaxAttempts": 99,
+                "BackoffRate": 1.5
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "Next": "Stories-Finalizer"
+    },
+    "Stories-Finalizer": {
+      "Type":"Task",
+      "Resource": "${STORIES_FINALIZER_LAMBDA_ARN}",
+      "End": true
+    }
+  }
+}
